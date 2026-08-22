@@ -5,3 +5,4 @@ dist/
 .wdk/
 wallet-data/
 package-lock.json
+data/*.json
