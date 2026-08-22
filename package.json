@@ -1,0 +1,15 @@
+{
+  "name": "fondo-comunitario",
+  "version": "1.0.0",
+  "description": "Fondo mutual en USDT para un gremio o grupo pequeño, construido para el Aleph Hackathon (Cochabamba, 22-23 agosto 2026). Los miembros aportan una cuota periódica; cuando alguien sufre un siniestro, un grupo de delegados designados revisa el caso dentro de la app y aprueba o rechaza el pago. Los pagos aprobados se ejecutan automáticamente vía **WDK CLI** de Tether, con un recibo `--json` por cada transacción.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tetherto/wdk-cli": "^1.0.0-beta.3"
+  }
+}
