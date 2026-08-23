@@ -45,6 +45,11 @@ test('rechaza monto máx <= 0', () => {
   assert.throws(() => crearGrupo({ ...datosValidos(), montoMaxSiniestro: -10 }), ErrorValidacion);
 });
 
+test('rechaza cuota o monto máx no numéricos (NaN)', () => {
+  assert.throws(() => crearGrupo({ ...datosValidos(), cuotaPeriodica: NaN }), ErrorValidacion);
+  assert.throws(() => crearGrupo({ ...datosValidos(), montoMaxSiniestro: NaN }), ErrorValidacion);
+});
+
 test('rechaza menos de 3 delegados', () => {
   assert.throws(() => crearGrupo({ ...datosValidos(), delegados: ['Ana', 'Carla'] }), ErrorValidacion);
 });

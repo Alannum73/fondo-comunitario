@@ -29,7 +29,7 @@ function validarDatosReclamo(grupo, { miembroId, montoSolicitado, descripcion, f
   if (!miembro) {
     throw new ErrorValidacion(`El miembro ${miembroId} no pertenece a este grupo.`);
   }
-  if (typeof montoSolicitado !== 'number' || montoSolicitado <= 0) {
+  if (!Number.isFinite(montoSolicitado) || montoSolicitado <= 0) {
     throw new ErrorValidacion('El monto solicitado debe ser un número mayor a 0.');
   }
   if (montoSolicitado > grupo.montoMaxSiniestro) {

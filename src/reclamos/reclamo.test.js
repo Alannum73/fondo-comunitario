@@ -81,6 +81,14 @@ test('rechaza monto <= 0', () => {
   );
 });
 
+test('rechaza monto no numérico (NaN)', () => {
+  const { grupo, miembro } = crearGrupoConMiembro();
+  assert.throws(
+    () => crearReclamo({ ...datosValidos(grupo, miembro), montoSolicitado: NaN }),
+    ErrorValidacion
+  );
+});
+
 test('rechaza monto que supera el máximo por siniestro del grupo', () => {
   const { grupo, miembro } = crearGrupoConMiembro();
   assert.throws(

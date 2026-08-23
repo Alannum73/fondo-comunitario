@@ -29,10 +29,10 @@ function validarDatosGrupo({ nombre, cuotaPeriodica, montoMaxSiniestro, delegado
   if (!nombre || typeof nombre !== 'string' || !nombre.trim()) {
     throw new ErrorValidacion('El grupo necesita un nombre.');
   }
-  if (typeof cuotaPeriodica !== 'number' || cuotaPeriodica <= 0) {
+  if (!Number.isFinite(cuotaPeriodica) || cuotaPeriodica <= 0) {
     throw new ErrorValidacion('La cuota periódica debe ser un número mayor a 0.');
   }
-  if (typeof montoMaxSiniestro !== 'number' || montoMaxSiniestro <= 0) {
+  if (!Number.isFinite(montoMaxSiniestro) || montoMaxSiniestro <= 0) {
     throw new ErrorValidacion('El monto máx por siniestro debe ser un número mayor a 0.');
   }
   if (!Array.isArray(delegados) || delegados.length < MIN_DELEGADOS) {
