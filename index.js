@@ -7,29 +7,14 @@
 
 import { createInterface } from 'node:readline';
 import { stdin, stdout } from 'node:process';
-import { existsSync, readFileSync } from 'node:fs';
 
+import { cargarEnv } from './src/shared/env.js';
 import { crearGrupo, listarGrupos, agregarMiembro, marcarAporte, ErrorValidacion } from './src/grupo/grupo.js';
 import { confirmarAporte } from './src/depositos/depositos.js';
 import { crearReclamo, listarReclamos, aprobarReclamo, rechazarReclamo } from './src/reclamos/reclamo.js';
 import { pagarReclamo } from './src/tesoreria/tesoreria.js';
 import { obtenerHistorial } from './src/historial/historial.js';
 
-// No agregamos una dependencia como `dotenv` solo para esto — WDK CLI debe ser la
-// dependencia principal del proyecto (pista del hackathon), así que un parser mínimo
-// de .env alcanza.
-function cargarEnv() {
-  if (!existsSync('.env')) return;
-  for (const linea of readFileSync('.env', 'utf-8').split('\n')) {
-    const limpia = linea.trim();
-    if (!limpia || limpia.startsWith('#')) continue;
-    const separador = limpia.indexOf('=');
-    if (separador === -1) continue;
-    const clave = limpia.slice(0, separador).trim();
-    const valor = limpia.slice(separador + 1).trim();
-    if (clave && !(clave in process.env)) process.env[clave] = valor;
-  }
-}
 cargarEnv();
 
 // `rl.question()` de `node:readline/promises` no encadena bien preguntas sucesivas

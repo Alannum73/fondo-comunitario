@@ -3,6 +3,7 @@
 
 import express from 'express';
 import cors from 'cors';
+import { cargarEnv } from '../src/shared/env.js';
 import {
   crearGrupo,
   listarGrupos,
@@ -12,6 +13,11 @@ import {
   ErrorValidacion,
 } from '../src/grupo/grupo.js';
 import { confirmarAporte } from '../src/depositos/depositos.js';
+
+// Sin esto, WDK_WALLET_NAME/WDK_NETWORK/WDK_TOKEN quedan undefined salvo que se exporten
+// a mano en la shell antes de `npm run server` — el frontend no los manda en el body,
+// asume que el server los toma del entorno (ver confirmarAporte más abajo).
+cargarEnv();
 
 const PORT = process.env.PORT || 3001;
 
