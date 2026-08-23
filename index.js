@@ -93,7 +93,8 @@ async function verGruposFlujo() {
     console.log(`    miembros: ${g.miembros.length} (${alDia} al día)`);
     for (const m of g.miembros) {
       const etiquetas = [m.esDelegado ? 'delegado' : null, m.alDia ? 'al día' : 'no al día'].filter(Boolean);
-      console.log(`      · ${m.nombre} (id ${m.id}) [${etiquetas.join(', ')}]`);
+      const referencia = m.referenciaTx ? ` — ref: ${m.referenciaTx}` : '';
+      console.log(`      · ${m.nombre} (id ${m.id}) [${etiquetas.join(', ')}]${referencia}`);
     }
 
     const reclamos = listarReclamos(g.id);
@@ -117,14 +118,16 @@ async function agregarMiembroFlujo() {
 async function confirmarAporteFlujo() {
   const grupoId = await preguntar('id del grupo: ');
   const miembroId = await preguntar('id del miembro: ');
-  const miembro = await confirmarAporte(grupoId, miembroId, opcionesWdk());
+  const referenciaTx = await preguntar('Hash de la transacción (opcional, Enter para omitir): ');
+  const miembro = await confirmarAporte(grupoId, miembroId, { ...opcionesWdk(), referenciaTx });
   console.log(`\n✓ ${miembro.nombre} quedó al día con su cuota.\n`);
 }
 
 async function marcarAporteManualFlujo() {
   const grupoId = await preguntar('id del grupo: ');
   const miembroId = await preguntar('id del miembro: ');
-  const miembro = marcarAporte(grupoId, miembroId);
+  const referenciaTx = await preguntar('Hash de la transacción (opcional, Enter para omitir): ');
+  const miembro = marcarAporte(grupoId, miembroId, referenciaTx);
   console.log(
     `\n⚠️  SIMULADO (no verificado con WDK): ${miembro.nombre} quedó marcado al día manualmente. ` +
       `Usar solo para pruebas mientras no haya USDT real en la wallet del fondo.\n`

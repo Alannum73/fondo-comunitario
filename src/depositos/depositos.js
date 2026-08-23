@@ -34,10 +34,16 @@ function guardarUltimoBalance(grupoId, balance) {
  *
  * @param {string} grupoId
  * @param {string} miembroId
- * @param {{wallet: string, network: string, token: string, obtenerBalance?: Function}} opciones
+ * @param {{wallet: string, network: string, token: string, referenciaTx?: string, obtenerBalance?: Function}} opciones
  *   `obtenerBalance` es inyectable para tests; por defecto pega contra WDK CLI real.
+ *   `referenciaTx` es opcional (hash de la transacción que el miembro quiera dejar como
+ *   registro) — no se usa para verificar el depósito, solo queda guardada para auditoría.
  */
-export async function confirmarAporte(grupoId, miembroId, { wallet, network, token, obtenerBalance = obtenerBalanceWdk }) {
+export async function confirmarAporte(
+  grupoId,
+  miembroId,
+  { wallet, network, token, referenciaTx, obtenerBalance = obtenerBalanceWdk }
+) {
   const grupo = obtenerGrupo(grupoId);
   const walletUsada = wallet || grupo.walletName;
 
@@ -53,5 +59,5 @@ export async function confirmarAporte(grupoId, miembroId, { wallet, network, tok
   }
 
   guardarUltimoBalance(grupoId, balanceActual);
-  return marcarAporte(grupoId, miembroId);
+  return marcarAporte(grupoId, miembroId, referenciaTx);
 }

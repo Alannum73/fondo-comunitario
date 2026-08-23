@@ -86,18 +86,19 @@ app.post(
     // Sin "wallet" acá: cada grupo tiene la suya propia (grupo.walletName), y
     // confirmarAporte() ya cae en eso si no se manda una explícita. Si mandáramos
     // WDK_WALLET_NAME del .env como fallback, pisaría la wallet del grupo.
-    const { miembroId, wallet, network, token } = req.body;
+    const { miembroId, wallet, network, token, referenciaTx } = req.body;
     return confirmarAporte(req.params.grupoId, miembroId, {
       wallet,
       network: network || process.env.WDK_NETWORK,
       token: token || process.env.WDK_TOKEN,
+      referenciaTx,
     });
   })
 );
 
 app.post(
   '/api/grupos/:grupoId/depositos/marcar-manual',
-  manejar((req) => marcarAporte(req.params.grupoId, req.body.miembroId))
+  manejar((req) => marcarAporte(req.params.grupoId, req.body.miembroId, req.body.referenciaTx))
 );
 
 app.get(

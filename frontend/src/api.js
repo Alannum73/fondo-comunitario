@@ -48,10 +48,10 @@ export function confirmarAporte(grupoId, datos) {
   });
 }
 
-export function marcarAporteManual(grupoId, miembroId) {
+export function marcarAporteManual(grupoId, miembroId, referenciaTx) {
   return pedir(`/grupos/${grupoId}/depositos/marcar-manual`, {
     method: 'POST',
-    body: JSON.stringify({ miembroId }),
+    body: JSON.stringify({ miembroId, referenciaTx }),
   });
 }
 

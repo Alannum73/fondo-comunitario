@@ -45,6 +45,19 @@ test('confirma el aporte cuando el balance subió al menos la cuota', async () =
   assert.equal(miembro.alDia, true);
 });
 
+test('guarda la referenciaTx si se pasa al confirmar', async () => {
+  const grupo = crearGrupoDePrueba();
+  const ana = agregarMiembro(grupo.id, { nombre: 'Ana' });
+
+  const miembro = await confirmarAporte(grupo.id, ana.id, {
+    ...opcionesWdk,
+    referenciaTx: '0xdeadbeef',
+    obtenerBalance: async () => 5,
+  });
+
+  assert.equal(miembro.referenciaTx, '0xdeadbeef');
+});
+
 test('rechaza si el balance no subió lo suficiente', async () => {
   const grupo = crearGrupoDePrueba();
   const ana = agregarMiembro(grupo.id, { nombre: 'Ana' });

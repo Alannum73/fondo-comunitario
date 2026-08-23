@@ -21,6 +21,7 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
   const [pestana, setPestana] = useState('miembros');
   const [nombreMiembro, setNombreMiembro] = useState('');
   const [miembroDeposito, setMiembroDeposito] = useState('');
+  const [referenciaTx, setReferenciaTx] = useState('');
   const [elegibles, setElegibles] = useState([]);
   const [direccionFondo, setDireccionFondo] = useState(null);
   const [errorDireccion, setErrorDireccion] = useState(null);
@@ -73,9 +74,10 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
     setMensaje(null);
     setCargando(true);
     try {
-      await confirmarAporte(grupo.id, { miembroId: miembroDeposito });
+      await confirmarAporte(grupo.id, { miembroId: miembroDeposito, referenciaTx: referenciaTx || undefined });
       setMensaje('Depósito confirmado. Miembro marcado al día.');
       setMiembroDeposito('');
+      setReferenciaTx('');
       onActualizar();
     } catch (err) {
       setError(err.message);
@@ -92,9 +94,10 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
     setError(null);
     setMensaje(null);
     try {
-      await marcarAporteManual(grupo.id, miembroDeposito);
+      await marcarAporteManual(grupo.id, miembroDeposito, referenciaTx || undefined);
       setMensaje('Aporte marcado manualmente (simulado, sin verificar contra WDK).');
       setMiembroDeposito('');
+      setReferenciaTx('');
       onActualizar();
     } catch (err) {
       setError(err.message);
@@ -202,6 +205,7 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
                 <span className={m.alDia ? 'etiqueta al-dia' : 'etiqueta pendiente'}>
                   {m.alDia ? 'al día' : 'pendiente'}
                 </span>
+                {m.referenciaTx && <code className="referencia-tx" title="Referencia de la transacción">{m.referenciaTx}</code>}
               </li>
             ))}
           </ul>
@@ -274,6 +278,11 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
                 <option key={m.id} value={m.id}>{m.nombre}</option>
               ))}
             </select>
+            <input
+              placeholder="Hash de la transacción (opcional)"
+              value={referenciaTx}
+              onChange={(e) => setReferenciaTx(e.target.value)}
+            />
             <button type="submit" disabled={cargando}>
               {cargando ? 'Verificando en WDK...' : 'Confirmar aporte'}
             </button>

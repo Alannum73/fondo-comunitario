@@ -112,6 +112,16 @@ test('marcarAporte pone al miembro al día', () => {
   const anaActualizada = grupoActualizado.miembros.find((m) => m.id === ana.id);
   assert.equal(anaActualizada.alDia, true);
   assert.ok(anaActualizada.fechaUltimoAporte);
+  assert.equal(anaActualizada.referenciaTx, null);
+});
+
+test('marcarAporte guarda la referencia de transacción si se pasa', () => {
+  const grupo = crearGrupo(datosValidos());
+  const ana = agregarMiembro(grupo.id, { nombre: 'Ana' });
+
+  marcarAporte(grupo.id, ana.id, '0xabc123');
+  const actualizada = obtenerGrupo(grupo.id).miembros.find((m) => m.id === ana.id);
+  assert.equal(actualizada.referenciaTx, '0xabc123');
 });
 
 test('delegadosElegibles solo cuenta delegados al día', () => {

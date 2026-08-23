@@ -114,6 +114,7 @@ export function agregarMiembro(grupoId, { nombre }) {
     esDelegado: grupo.delegados.some((d) => d.toLowerCase() === nombre.trim().toLowerCase()),
     alDia: false,
     fechaUltimoAporte: null,
+    referenciaTx: null,
   };
 
   grupo.miembros.push(miembro);
@@ -124,8 +125,11 @@ export function agregarMiembro(grupoId, { nombre }) {
 /**
  * Marca a un miembro como "al día" tras un aporte confirmado.
  * La llama el módulo de depósitos (paso 3) una vez que WDK confirma la transacción.
+ * `referenciaTx` es opcional (hash de la transacción o cualquier nota que el miembro quiera
+ * dejar) — no se usa para verificar nada (la verificación real sigue siendo por balance vía
+ * WDK), solo queda guardada como registro auditable de qué transacción correspondía a este aporte.
  */
-export function marcarAporte(grupoId, miembroId) {
+export function marcarAporte(grupoId, miembroId, referenciaTx = null) {
   const db = cargarGrupos();
   const grupo = db.grupos.find((g) => g.id === grupoId);
   if (!grupo) throw new ErrorValidacion(`No existe un grupo con id ${grupoId}.`);
@@ -135,6 +139,7 @@ export function marcarAporte(grupoId, miembroId) {
 
   miembro.alDia = true;
   miembro.fechaUltimoAporte = new Date().toISOString();
+  miembro.referenciaTx = referenciaTx && String(referenciaTx).trim() ? String(referenciaTx).trim() : null;
   guardarGrupos(db);
   return miembro;
 }

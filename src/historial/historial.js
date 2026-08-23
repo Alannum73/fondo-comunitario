@@ -24,6 +24,7 @@ export function obtenerHistorial(grupoId) {
       fecha: m.fechaUltimoAporte,
       miembroId: m.id,
       miembroNombre: m.nombre,
+      referenciaTx: m.referenciaTx ?? null,
     }));
 
   const eventosReclamoCreado = reclamos.map((r) => ({

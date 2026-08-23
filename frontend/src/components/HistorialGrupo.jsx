@@ -60,6 +60,7 @@ export default function HistorialGrupo({ grupoId, onVolver }) {
             <span>{TITULO_EVENTO[ev.tipo] ?? ev.tipo}</span>
             <span className="vacio">{ev.miembroNombre ?? ''}</span>
             {ev.monto != null && <span className="etiqueta">{ev.monto} USDT</span>}
+            {ev.referenciaTx && <code className="referencia-tx">{ev.referenciaTx}</code>}
             <span className="vacio">{new Date(ev.fecha).toLocaleString()}</span>
           </li>
         ))}
