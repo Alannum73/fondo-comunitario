@@ -9,7 +9,7 @@ import { createInterface } from 'node:readline';
 import { stdin, stdout } from 'node:process';
 import { existsSync, readFileSync } from 'node:fs';
 
-import { crearGrupo, listarGrupos, agregarMiembro, ErrorValidacion } from './src/grupo/grupo.js';
+import { crearGrupo, listarGrupos, agregarMiembro, marcarAporte, ErrorValidacion } from './src/grupo/grupo.js';
 import { confirmarAporte } from './src/depositos/depositos.js';
 import { crearReclamo, listarReclamos, aprobarReclamo, rechazarReclamo } from './src/reclamos/reclamo.js';
 import { pagarReclamo } from './src/tesoreria/tesoreria.js';
@@ -121,6 +121,16 @@ async function confirmarAporteFlujo() {
   console.log(`\n✓ ${miembro.nombre} quedó al día con su cuota.\n`);
 }
 
+async function marcarAporteManualFlujo() {
+  const grupoId = await preguntar('id del grupo: ');
+  const miembroId = await preguntar('id del miembro: ');
+  const miembro = marcarAporte(grupoId, miembroId);
+  console.log(
+    `\n⚠️  SIMULADO (no verificado con WDK): ${miembro.nombre} quedó marcado al día manualmente. ` +
+      `Usar solo para pruebas mientras no haya USDT real en la wallet del fondo.\n`
+  );
+}
+
 async function reportarReclamoFlujo() {
   const grupoId = await preguntar('id del grupo: ');
   const miembroId = await preguntar('id del miembro reclamante: ');
@@ -172,6 +182,7 @@ const OPCIONES = {
   6: ['Votar un reclamo (delegado)', votarReclamoFlujo],
   7: ['Pagar un reclamo aprobado (real, vía WDK)', pagarReclamoFlujo],
   8: ['Ver historial de un grupo', verHistorialFlujo],
+  9: ['Marcar aporte manual (SIN WDK — solo para pruebas)', marcarAporteManualFlujo],
 };
 
 async function menuPrincipal() {
