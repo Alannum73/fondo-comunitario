@@ -14,7 +14,7 @@ const grupo = crearGrupo({
   delegados: ['Usuario A', 'Usuario C', 'Usuario E'],
   quorumDelegados: 2,
 });
-const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B' });
+const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B', password: 'clave1234' });
 console.log(`Grupo: "${grupo.nombre}" | monto máx por siniestro: $${grupo.montoMaxSiniestro} USDT`);
 console.log(`Miembro: ${miembro.nombre} (id ${miembro.id})`);
 

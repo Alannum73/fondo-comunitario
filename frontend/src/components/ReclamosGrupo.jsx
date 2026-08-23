@@ -16,11 +16,13 @@ const ETIQUETA_ESTADO = {
 
 const FORM_INICIAL = { miembroId: '', montoSolicitado: '', descripcion: '', fotoPath: '' };
 
-export default function ReclamosGrupo({ grupo, elegibles }) {
+export default function ReclamosGrupo({ grupo, elegibles, usuarioActual, usuarioToken }) {
   const [reclamos, setReclamos] = useState([]);
   const [form, setForm] = useState(FORM_INICIAL);
-  const [delegadoVotante, setDelegadoVotante] = useState('');
   const [direcciones, setDirecciones] = useState({});
+  // Solo puede votar quien entró como un delegado elegible — nada de elegir "votar como
+  // cualquiera" de una lista. El server igual lo vuelve a chequear con la sesión.
+  const puedeVotar = usuarioActual && usuarioToken && elegibles.some((d) => d.id === usuarioActual.id);
   const [error, setError] = useState(null);
   const [mensaje, setMensaje] = useState(null);
   const [cargando, setCargando] = useState(false);
@@ -54,14 +56,14 @@ export default function ReclamosGrupo({ grupo, elegibles }) {
   }
 
   async function handleVotar(reclamoId, aprobar) {
-    if (!delegadoVotante) {
-      setError('Elegí qué delegado está votando.');
+    if (!puedeVotar) {
+      setError('Tenés que haber entrado como un delegado elegible para votar.');
       return;
     }
     setError(null);
     setMensaje(null);
     try {
-      await (aprobar ? aprobarReclamo : rechazarReclamo)(reclamoId, delegadoVotante);
+      await (aprobar ? aprobarReclamo : rechazarReclamo)(reclamoId, usuarioActual.id, usuarioToken);
       cargarReclamos();
     } catch (err) {
       setError(err.message);
@@ -142,16 +144,20 @@ export default function ReclamosGrupo({ grupo, elegibles }) {
 
       <h3>Reclamos ({reclamos.length})</h3>
 
-      {elegibles.length > 0 ? (
-        <label className="selector-votante">
-          Votando como
-          <select value={delegadoVotante} onChange={(e) => setDelegadoVotante(e.target.value)}>
-            <option value="">Elegir delegado...</option>
-            {elegibles.map((d) => (
-              <option key={d.id} value={d.id}>{d.nombre}</option>
-            ))}
-          </select>
-        </label>
+      {puedeVotar ? (
+        <p className="aviso-delegados">
+          Estás votando como <strong>{usuarioActual.nombre}</strong>.
+        </p>
+      ) : usuarioActual ? (
+        <p className="aviso-delegados">
+          {usuarioActual.nombre} no es un delegado elegible todavía (tiene que ser delegado
+          designado y estar al día con su cuota) — no vas a poder aprobar ni rechazar.
+        </p>
+      ) : elegibles.length > 0 ? (
+        <p className="aviso-delegados">
+          Para votar, entrá al fondo como uno de los delegados elegibles: {' '}
+          <strong>{elegibles.map((d) => d.nombre).join(', ')}</strong>.
+        </p>
       ) : (
         <p className="aviso-delegados">
           Todavía nadie puede votar: los delegados designados de este fondo son{' '}
@@ -179,8 +185,8 @@ export default function ReclamosGrupo({ grupo, elegibles }) {
                     {r.aprobaciones.length} aprob. / {r.rechazos.length} rechazos (quórum {grupo.quorumDelegados})
                   </span>
                   <div className="grupo-botones">
-                    <button disabled={!delegadoVotante} onClick={() => handleVotar(r.id, true)}>Aprobar</button>
-                    <button disabled={!delegadoVotante} onClick={() => handleVotar(r.id, false)}>Rechazar</button>
+                    <button disabled={!puedeVotar} onClick={() => handleVotar(r.id, true)}>Aprobar</button>
+                    <button disabled={!puedeVotar} onClick={() => handleVotar(r.id, false)}>Rechazar</button>
                   </div>
                 </div>
               )}

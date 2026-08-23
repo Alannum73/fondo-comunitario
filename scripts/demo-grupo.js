@@ -23,7 +23,7 @@ console.log(`Grupo creado: "${grupo.nombre}" (id ${grupo.id})`);
 console.log(`  cuota: $${grupo.cuotaPeriodica} USDT | monto máx: $${grupo.montoMaxSiniestro} USDT | quórum: ${grupo.quorumDelegados}/${grupo.delegados.length}`);
 
 for (const nombre of ['Usuario A', 'Usuario B', 'Usuario C', 'Usuario D', 'Usuario E']) {
-  const miembro = agregarMiembro(grupo.id, { nombre });
+  const miembro = agregarMiembro(grupo.id, { nombre, password: 'clave1234' });
   console.log(`  + ${miembro.nombre} se unió${miembro.esDelegado ? ' (delegado)' : ''}`);
 }
 

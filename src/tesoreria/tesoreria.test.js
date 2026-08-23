@@ -37,9 +37,9 @@ const crearReclamoAprobado = () => {
     delegados: ['Ana', 'Carla', 'Elena'],
     quorumDelegados: 2,
   });
-  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B' });
+  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B', password: 'clave1234' });
   const delegados = ['Ana', 'Carla', 'Elena'].map((nombre) => {
-    const d = agregarMiembro(grupo.id, { nombre });
+    const d = agregarMiembro(grupo.id, { nombre, password: 'clave1234' });
     marcarAporte(grupo.id, d.id);
     return d;
   });
@@ -103,7 +103,7 @@ test('rechaza pagar un reclamo que no está aprobado', async () => {
     delegados: ['Ana', 'Carla', 'Elena'],
     quorumDelegados: 2,
   });
-  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B' });
+  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B', password: 'clave1234' });
   const reclamoPendiente = crearReclamo({
     grupoId: grupo.id,
     miembroId: miembro.id,
@@ -153,9 +153,9 @@ test('usa la wallet propia del grupo (grupo.walletName) si no se pasa "wallet" e
     delegados: ['Ana', 'Carla', 'Elena'],
     quorumDelegados: 2,
   });
-  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B' });
+  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B', password: 'clave1234' });
   const delegados = ['Ana', 'Carla', 'Elena'].map((nombre) => {
-    const d = agregarMiembro(grupo.id, { nombre });
+    const d = agregarMiembro(grupo.id, { nombre, password: 'clave1234' });
     marcarAporte(grupo.id, d.id);
     return d;
   });

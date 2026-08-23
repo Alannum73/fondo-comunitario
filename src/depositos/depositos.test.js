@@ -37,7 +37,7 @@ const opcionesWdk = { wallet: 'fondo-test', network: 'sepolia', token: 'usdt' };
 
 test('confirma el aporte cuando el balance subió al menos la cuota', async () => {
   const grupo = crearGrupoDePrueba();
-  const ana = agregarMiembro(grupo.id, { nombre: 'Ana' });
+  const ana = agregarMiembro(grupo.id, { nombre: 'Ana', password: 'clave1234' });
 
   const obtenerBalance = async () => 5;
   const miembro = await confirmarAporte(grupo.id, ana.id, { ...opcionesWdk, obtenerBalance });
@@ -47,7 +47,7 @@ test('confirma el aporte cuando el balance subió al menos la cuota', async () =
 
 test('guarda la referenciaTx si se pasa al confirmar', async () => {
   const grupo = crearGrupoDePrueba();
-  const ana = agregarMiembro(grupo.id, { nombre: 'Ana' });
+  const ana = agregarMiembro(grupo.id, { nombre: 'Ana', password: 'clave1234' });
 
   const miembro = await confirmarAporte(grupo.id, ana.id, {
     ...opcionesWdk,
@@ -60,7 +60,7 @@ test('guarda la referenciaTx si se pasa al confirmar', async () => {
 
 test('rechaza si el balance no subió lo suficiente', async () => {
   const grupo = crearGrupoDePrueba();
-  const ana = agregarMiembro(grupo.id, { nombre: 'Ana' });
+  const ana = agregarMiembro(grupo.id, { nombre: 'Ana', password: 'clave1234' });
 
   const obtenerBalance = async () => 2;
   await assert.rejects(
@@ -71,8 +71,8 @@ test('rechaza si el balance no subió lo suficiente', async () => {
 
 test('depósitos sucesivos consumen el snapshot y no se re-cuentan', async () => {
   const grupo = crearGrupoDePrueba();
-  const ana = agregarMiembro(grupo.id, { nombre: 'Ana' });
-  const carla = agregarMiembro(grupo.id, { nombre: 'Carla' });
+  const ana = agregarMiembro(grupo.id, { nombre: 'Ana', password: 'clave1234' });
+  const carla = agregarMiembro(grupo.id, { nombre: 'Carla', password: 'clave1234' });
 
   await confirmarAporte(grupo.id, ana.id, { ...opcionesWdk, obtenerBalance: async () => 5 });
 
@@ -96,7 +96,7 @@ test('usa la wallet propia del grupo (grupo.walletName) si no se pasa "wallet" e
     delegados: ['Ana', 'Carla', 'Elena'],
     quorumDelegados: 2,
   });
-  const ana = agregarMiembro(grupo.id, { nombre: 'Ana' });
+  const ana = agregarMiembro(grupo.id, { nombre: 'Ana', password: 'clave1234' });
 
   let walletRecibida;
   const obtenerBalance = async ({ wallet }) => {

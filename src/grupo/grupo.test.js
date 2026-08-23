@@ -26,6 +26,7 @@ const {
   obtenerGrupo,
   eliminarGrupo,
   listarGrupos,
+  verificarLogin,
   ErrorValidacion,
 } = await import('./grupo.js');
 
@@ -88,8 +89,8 @@ test('rechaza quórum mayor a la cantidad de delegados', () => {
 
 test('agrega miembros y marca delegados automáticamente', () => {
   const grupo = crearGrupo(datosValidos());
-  const miembroB = agregarMiembro(grupo.id, { nombre: 'Usuario B' });
-  const delegadaAna = agregarMiembro(grupo.id, { nombre: 'Ana' });
+  const miembroB = agregarMiembro(grupo.id, { nombre: 'Usuario B', password: 'clave1234' });
+  const delegadaAna = agregarMiembro(grupo.id, { nombre: 'Ana', password: 'clave1234' });
 
   assert.equal(miembroB.esDelegado, false);
   assert.equal(delegadaAna.esDelegado, true);
@@ -98,13 +99,36 @@ test('agrega miembros y marca delegados automáticamente', () => {
 
 test('rechaza miembro duplicado', () => {
   const grupo = crearGrupo(datosValidos());
-  agregarMiembro(grupo.id, { nombre: 'Usuario B' });
-  assert.throws(() => agregarMiembro(grupo.id, { nombre: 'usuario b' }), ErrorValidacion);
+  agregarMiembro(grupo.id, { nombre: 'Usuario B', password: 'clave1234' });
+  assert.throws(() => agregarMiembro(grupo.id, { nombre: 'usuario b', password: 'clave1234' }), ErrorValidacion);
+});
+
+test('rechaza agregar un miembro sin contraseña o con una muy corta', () => {
+  const grupo = crearGrupo(datosValidos());
+  assert.throws(() => agregarMiembro(grupo.id, { nombre: 'Sin Clave' }), ErrorValidacion);
+  assert.throws(() => agregarMiembro(grupo.id, { nombre: 'Clave Corta', password: 'abc' }), ErrorValidacion);
+});
+
+test('agregarMiembro nunca devuelve la contraseña en texto plano ni el hash', () => {
+  const grupo = crearGrupo(datosValidos());
+  const miembro = agregarMiembro(grupo.id, { nombre: 'Ana', password: 'clave1234' });
+  assert.equal(miembro.password, undefined);
+  assert.equal(miembro.passwordHash, undefined);
+});
+
+test('verificarLogin acepta la contraseña correcta y rechaza una incorrecta', () => {
+  const grupo = crearGrupo(datosValidos());
+  const ana = agregarMiembro(grupo.id, { nombre: 'Ana', password: 'clave-secreta' });
+
+  const logueada = verificarLogin(grupo.id, ana.id, 'clave-secreta');
+  assert.equal(logueada.id, ana.id);
+
+  assert.throws(() => verificarLogin(grupo.id, ana.id, 'clave-incorrecta'), ErrorValidacion);
 });
 
 test('marcarAporte pone al miembro al día', () => {
   const grupo = crearGrupo(datosValidos());
-  const ana = agregarMiembro(grupo.id, { nombre: 'Ana' });
+  const ana = agregarMiembro(grupo.id, { nombre: 'Ana', password: 'clave1234' });
   assert.equal(ana.alDia, false);
 
   marcarAporte(grupo.id, ana.id);
@@ -117,7 +141,7 @@ test('marcarAporte pone al miembro al día', () => {
 
 test('marcarAporte guarda la referencia de transacción si se pasa', () => {
   const grupo = crearGrupo(datosValidos());
-  const ana = agregarMiembro(grupo.id, { nombre: 'Ana' });
+  const ana = agregarMiembro(grupo.id, { nombre: 'Ana', password: 'clave1234' });
 
   marcarAporte(grupo.id, ana.id, '0xabc123');
   const actualizada = obtenerGrupo(grupo.id).miembros.find((m) => m.id === ana.id);
@@ -126,8 +150,8 @@ test('marcarAporte guarda la referencia de transacción si se pasa', () => {
 
 test('delegadosElegibles solo cuenta delegados al día', () => {
   const grupo = crearGrupo(datosValidos());
-  const ana = agregarMiembro(grupo.id, { nombre: 'Ana' }); // delegada, no al día todavía
-  agregarMiembro(grupo.id, { nombre: 'Carla' }); // delegada, no al día todavía
+  const ana = agregarMiembro(grupo.id, { nombre: 'Ana', password: 'clave1234' }); // delegada, no al día todavía
+  agregarMiembro(grupo.id, { nombre: 'Carla', password: 'clave1234' }); // delegada, no al día todavía
 
   assert.equal(delegadosElegibles(grupo.id).length, 0);
 

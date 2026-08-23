@@ -111,7 +111,8 @@ async function verGruposFlujo() {
 async function agregarMiembroFlujo() {
   const grupoId = await preguntar('id del grupo: ');
   const nombre = await preguntar('Nombre del miembro: ');
-  const miembro = agregarMiembro(grupoId, { nombre });
+  const password = await preguntar('Contraseña del miembro (mín. 4 caracteres, la elige y recuerda él/ella): ');
+  const miembro = agregarMiembro(grupoId, { nombre, password });
   console.log(`\n✓ ${miembro.nombre} agregado${miembro.esDelegado ? ' (delegado)' : ''}. id: ${miembro.id}\n`);
 }
 

@@ -13,6 +13,7 @@ export default function App() {
   const [grupos, setGrupos] = useState([]);
   const [grupoActivo, setGrupoActivo] = useState(null);
   const [usuarioActual, setUsuarioActual] = useState(null);
+  const [usuarioToken, setUsuarioToken] = useState(null);
   const [error, setError] = useState(null);
 
   const cargarGrupos = useCallback(() => {
@@ -28,15 +29,17 @@ export default function App() {
       const grupo = await obtenerGrupo(id);
       setGrupoActivo(grupo);
       setUsuarioActual(null);
+      setUsuarioToken(null);
       setVista('detalle');
     } catch (err) {
       setError(err.message);
     }
   }
 
-  function entrarComoMiembro(grupo, miembro) {
+  function entrarComoMiembro(grupo, miembro, token) {
     setGrupoActivo(grupo);
     setUsuarioActual(miembro ?? null);
+    setUsuarioToken(token ?? null);
     setVista('detalle');
   }
 
@@ -50,6 +53,7 @@ export default function App() {
   function irAInicio() {
     setGrupoActivo(null);
     setUsuarioActual(null);
+    setUsuarioToken(null);
     setVista('inicio');
   }
 
@@ -102,6 +106,7 @@ export default function App() {
               cargarGrupos();
               setGrupoActivo(grupo);
               setUsuarioActual(null);
+              setUsuarioToken(null);
               setVista('detalle');
             }}
           />
@@ -115,6 +120,7 @@ export default function App() {
           <DetalleGrupo
             grupo={grupoActivo}
             usuarioActual={usuarioActual}
+            usuarioToken={usuarioToken}
             onVolver={irAInicio}
             onActualizar={refrescarGrupoActivo}
             onVerHistorial={() => setVista('historial')}

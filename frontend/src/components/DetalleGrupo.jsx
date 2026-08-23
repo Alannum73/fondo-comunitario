@@ -17,9 +17,18 @@ const PESTANAS = [
   { id: 'siniestros', etiqueta: 'Siniestros' },
 ];
 
-export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActualizar, onVerHistorial, onEliminado }) {
+export default function DetalleGrupo({
+  grupo,
+  usuarioActual,
+  usuarioToken,
+  onVolver,
+  onActualizar,
+  onVerHistorial,
+  onEliminado,
+}) {
   const [pestana, setPestana] = useState('miembros');
   const [nombreMiembro, setNombreMiembro] = useState('');
+  const [passwordMiembro, setPasswordMiembro] = useState('');
   const [miembroDeposito, setMiembroDeposito] = useState('');
   const [referenciaTx, setReferenciaTx] = useState('');
   const [elegibles, setElegibles] = useState([]);
@@ -60,8 +69,9 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
     setError(null);
     setMensaje(null);
     try {
-      await agregarMiembro(grupo.id, { nombre: nombreMiembro });
+      await agregarMiembro(grupo.id, { nombre: nombreMiembro, password: passwordMiembro });
       setNombreMiembro('');
+      setPasswordMiembro('');
       onActualizar();
     } catch (err) {
       setError(err.message);
@@ -217,8 +227,20 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
               onChange={(e) => setNombreMiembro(e.target.value)}
               required
             />
+            <input
+              type="password"
+              placeholder="Contraseña (mín. 4 caracteres)"
+              value={passwordMiembro}
+              onChange={(e) => setPasswordMiembro(e.target.value)}
+              minLength={4}
+              required
+            />
             <button type="submit">Agregar miembro</button>
           </form>
+          <p className="vacio">
+            La contraseña la elige y recuerda el miembro — la necesita para entrar como sí
+            mismo después ("Entrar a un fondo") y para votar reclamos si es delegado.
+          </p>
 
           {delegadosPendientes.length > 0 && (
             <p className="aviso-delegados">
@@ -306,7 +328,12 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
             )}
           </ul>
 
-          <ReclamosGrupo grupo={grupo} elegibles={elegibles} />
+          <ReclamosGrupo
+            grupo={grupo}
+            elegibles={elegibles}
+            usuarioActual={usuarioActual}
+            usuarioToken={usuarioToken}
+          />
         </>
       )}
 

@@ -17,9 +17,9 @@ const grupo = crearGrupo({
   delegados: ['Usuario A', 'Usuario C', 'Usuario E'],
   quorumDelegados: 2,
 });
-const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B' });
+const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B', password: 'clave1234' });
 const delegados = ['Usuario A', 'Usuario C', 'Usuario E'].map((nombre) => {
-  const d = agregarMiembro(grupo.id, { nombre });
+  const d = agregarMiembro(grupo.id, { nombre, password: 'clave1234' });
   marcarAporte(grupo.id, d.id);
   return d;
 });

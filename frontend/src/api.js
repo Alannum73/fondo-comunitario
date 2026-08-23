@@ -1,11 +1,10 @@
 // Cliente delgado para la API del backend (api/server.js).
 // En dev, Vite hace proxy de /api hacia http://localhost:3001 (ver vite.config.js).
 
-async function pedir(path, opciones = {}) {
-  const res = await fetch(`/api${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...opciones,
-  });
+async function pedir(path, opciones = {}, token) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`/api${path}`, { headers, ...opciones });
   const datos = await res.json().catch(() => null);
   if (!res.ok) {
     throw new Error(datos?.error || `Error ${res.status} al llamar ${path}`);
@@ -37,6 +36,13 @@ export function delegadosElegibles(grupoId) {
   return pedir(`/grupos/${grupoId}/delegados-elegibles`);
 }
 
+export function loginMiembro(grupoId, miembroId, password) {
+  return pedir(`/grupos/${grupoId}/miembros/${miembroId}/login`, {
+    method: 'POST',
+    body: JSON.stringify({ password }),
+  });
+}
+
 export function obtenerDireccionFondo(grupoId) {
   return pedir(`/grupos/${grupoId}/direccion`);
 }
@@ -63,18 +69,20 @@ export function crearReclamo(grupoId, datos) {
   return pedir(`/grupos/${grupoId}/reclamos`, { method: 'POST', body: JSON.stringify(datos) });
 }
 
-export function aprobarReclamo(reclamoId, delegadoId) {
-  return pedir(`/reclamos/${reclamoId}/aprobar`, {
-    method: 'POST',
-    body: JSON.stringify({ delegadoId }),
-  });
+export function aprobarReclamo(reclamoId, delegadoId, token) {
+  return pedir(
+    `/reclamos/${reclamoId}/aprobar`,
+    { method: 'POST', body: JSON.stringify({ delegadoId }) },
+    token
+  );
 }
 
-export function rechazarReclamo(reclamoId, delegadoId) {
-  return pedir(`/reclamos/${reclamoId}/rechazar`, {
-    method: 'POST',
-    body: JSON.stringify({ delegadoId }),
-  });
+export function rechazarReclamo(reclamoId, delegadoId, token) {
+  return pedir(
+    `/reclamos/${reclamoId}/rechazar`,
+    { method: 'POST', body: JSON.stringify({ delegadoId }) },
+    token
+  );
 }
 
 export function pagarReclamo(reclamoId, direccionDestino) {

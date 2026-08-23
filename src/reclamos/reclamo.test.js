@@ -32,7 +32,7 @@ const crearGrupoConMiembro = () => {
     delegados: ['Ana', 'Carla', 'Elena'],
     quorumDelegados: 2,
   });
-  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B' });
+  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B', password: 'clave1234' });
   return { grupo, miembro };
 };
 
@@ -40,7 +40,7 @@ const crearGrupoConMiembro = () => {
 const crearGrupoConDelegadosElegibles = () => {
   const { grupo, miembro } = crearGrupoConMiembro();
   const delegados = ['Ana', 'Carla', 'Elena'].map((nombre) => {
-    const d = agregarMiembro(grupo.id, { nombre });
+    const d = agregarMiembro(grupo.id, { nombre, password: 'clave1234' });
     marcarAporte(grupo.id, d.id);
     return d;
   });
@@ -168,7 +168,7 @@ test('el quórum de rechazos rechaza el reclamo', () => {
 
 test('rechaza el voto de un delegado no elegible (no está al día)', () => {
   const { grupo, miembro } = crearGrupoConMiembro();
-  const delegadaNoAlDia = agregarMiembro(grupo.id, { nombre: 'Ana' });
+  const delegadaNoAlDia = agregarMiembro(grupo.id, { nombre: 'Ana', password: 'clave1234' });
   const reclamo = crearReclamo(datosValidos(grupo, miembro));
 
   assert.throws(() => aprobarReclamo(reclamo.id, delegadaNoAlDia.id), ErrorValidacion);

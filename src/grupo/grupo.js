@@ -6,6 +6,7 @@
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import { leer, escribir } from '../shared/jsonStore.js';
+import { hashPassword, verificarPassword } from '../shared/auth.js';
 
 const DB_PATH = process.env.GRUPOS_DB_PATH || join(process.cwd(), 'data', 'grupos.json');
 const MIN_DELEGADOS = 3;
@@ -23,6 +24,25 @@ function cargarGrupos() {
 
 function guardarGrupos(db) {
   escribir(DB_PATH, db);
+}
+
+// El passwordHash nunca sale de este módulo salvo hacia verificarLogin (que lo necesita
+// para comparar). Todas las funciones públicas que devuelven un miembro o un grupo pasan
+// por estos limpiadores antes de retornar, así ningún consumidor (API, CLI, tests) puede
+// llegar a exponerlo por accidente.
+function limpiarMiembro(miembro) {
+  const { passwordHash, ...resto } = miembro;
+  return resto;
+}
+
+function limpiarGrupo(grupo) {
+  return { ...grupo, miembros: grupo.miembros.map(limpiarMiembro) };
+}
+
+function obtenerGrupoCrudo(grupoId) {
+  const grupo = cargarGrupos().grupos.find((g) => g.id === grupoId);
+  if (!grupo) throw new ErrorValidacion(`No existe un grupo con id ${grupoId}.`);
+  return grupo;
 }
 
 function validarDatosGrupo({ nombre, walletName, cuotaPeriodica, montoMaxSiniestro, delegados, quorumDelegados }) {
@@ -83,22 +103,26 @@ export function crearGrupo(datos) {
 }
 
 export function listarGrupos() {
-  return cargarGrupos().grupos;
+  return cargarGrupos().grupos.map(limpiarGrupo);
 }
 
 export function obtenerGrupo(grupoId) {
-  const grupo = cargarGrupos().grupos.find((g) => g.id === grupoId);
-  if (!grupo) throw new ErrorValidacion(`No existe un grupo con id ${grupoId}.`);
-  return grupo;
+  return limpiarGrupo(obtenerGrupoCrudo(grupoId));
 }
 
 /**
  * Agrega un miembro al grupo. `alDia` empieza en false hasta que el módulo de
  * depósitos (paso 3, integrado con WDK) confirme el primer aporte.
+ * Requiere `password` — cada miembro tiene la suya para poder entrar como sí mismo
+ * (ver verificarLogin) y así evitar que cualquiera pueda actuar como cualquier otro
+ * miembro solo eligiendo su nombre. Se guarda hasheada (nunca en texto plano).
  */
-export function agregarMiembro(grupoId, { nombre }) {
+export function agregarMiembro(grupoId, { nombre, password }) {
   if (!nombre || typeof nombre !== 'string' || !nombre.trim()) {
     throw new ErrorValidacion('El miembro necesita un nombre.');
+  }
+  if (!password || typeof password !== 'string' || password.length < 4) {
+    throw new ErrorValidacion('El miembro necesita una contraseña de al menos 4 caracteres.');
   }
   const db = cargarGrupos();
   const grupo = db.grupos.find((g) => g.id === grupoId);
@@ -111,6 +135,7 @@ export function agregarMiembro(grupoId, { nombre }) {
   const miembro = {
     id: randomUUID(),
     nombre: nombre.trim(),
+    passwordHash: hashPassword(password),
     esDelegado: grupo.delegados.some((d) => d.toLowerCase() === nombre.trim().toLowerCase()),
     alDia: false,
     fechaUltimoAporte: null,
@@ -119,7 +144,7 @@ export function agregarMiembro(grupoId, { nombre }) {
 
   grupo.miembros.push(miembro);
   guardarGrupos(db);
-  return miembro;
+  return limpiarMiembro(miembro);
 }
 
 /**
@@ -141,7 +166,7 @@ export function marcarAporte(grupoId, miembroId, referenciaTx = null) {
   miembro.fechaUltimoAporte = new Date().toISOString();
   miembro.referenciaTx = referenciaTx && String(referenciaTx).trim() ? String(referenciaTx).trim() : null;
   guardarGrupos(db);
-  return miembro;
+  return limpiarMiembro(miembro);
 }
 
 /**
@@ -166,5 +191,20 @@ export function eliminarGrupo(grupoId) {
 
   const [grupo] = db.grupos.splice(indice, 1);
   guardarGrupos(db);
-  return grupo;
+  return limpiarGrupo(grupo);
+}
+
+/**
+ * Verifica la contraseña de un miembro para "entrar" como él. No devuelve una sesión acá
+ * (eso lo arma la capa de API con crearSesion de src/shared/auth.js) — esto solo valida.
+ * Es la única función que lee `passwordHash`; el miembro que devuelve ya viene limpio.
+ */
+export function verificarLogin(grupoId, miembroId, password) {
+  const grupo = obtenerGrupoCrudo(grupoId);
+  const miembro = grupo.miembros.find((m) => m.id === miembroId);
+  if (!miembro) throw new ErrorValidacion(`No existe un miembro con id ${miembroId} en este grupo.`);
+  if (!verificarPassword(password, miembro.passwordHash)) {
+    throw new ErrorValidacion('Contraseña incorrecta.');
+  }
+  return limpiarMiembro(miembro);
 }

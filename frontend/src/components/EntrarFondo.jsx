@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { obtenerGrupo } from '../api.js';
+import { obtenerGrupo, loginMiembro } from '../api.js';
 
 export default function EntrarFondo({ grupos, onVolver, onEntrar }) {
   const [grupoId, setGrupoId] = useState('');
   const [grupo, setGrupo] = useState(null);
   const [miembroId, setMiembroId] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [cargando, setCargando] = useState(false);
 
@@ -15,12 +16,18 @@ export default function EntrarFondo({ grupos, onVolver, onEntrar }) {
     obtenerGrupo(grupoId).then(setGrupo).catch((err) => setError(err.message));
   }, [grupoId]);
 
-  function entrar(e) {
+  async function entrar(e) {
     e.preventDefault();
     setError(null);
     setCargando(true);
-    const miembro = grupo.miembros.find((m) => m.id === miembroId);
-    onEntrar(grupo, miembro);
+    try {
+      const { token, miembro } = await loginMiembro(grupoId, miembroId, password);
+      onEntrar(grupo, miembro, token);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCargando(false);
+    }
   }
 
   return (
@@ -55,14 +62,26 @@ export default function EntrarFondo({ grupos, onVolver, onEntrar }) {
           </label>
         )}
 
+        {grupo && miembroId && (
+          <label>
+            Tu contraseña
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </label>
+        )}
+
         {grupo && grupo.miembros.length === 0 && (
           <p className="vacio">Este fondo todavía no tiene miembros registrados.</p>
         )}
 
         {error && <p className="error">{error}</p>}
 
-        <button type="submit" disabled={!miembroId || cargando}>
-          Entrar
+        <button type="submit" disabled={!miembroId || !password || cargando}>
+          {cargando ? 'Entrando...' : 'Entrar'}
         </button>
       </form>
     </section>

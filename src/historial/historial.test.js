@@ -54,7 +54,7 @@ test('historial de un grupo recién creado está vacío', () => {
 
 test('un aporte confirmado aparece como evento', () => {
   const grupo = crearGrupoBase();
-  const ana = agregarMiembro(grupo.id, { nombre: 'Ana' });
+  const ana = agregarMiembro(grupo.id, { nombre: 'Ana', password: 'clave1234' });
   marcarAporte(grupo.id, ana.id);
 
   const historial = obtenerHistorial(grupo.id);
@@ -66,7 +66,7 @@ test('un aporte confirmado aparece como evento', () => {
 
 test('un reclamo creado aparece como evento y en el resumen de pendientes', () => {
   const grupo = crearGrupoBase();
-  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B' });
+  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B', password: 'clave1234' });
   crearReclamo({
     grupoId: grupo.id,
     miembroId: miembro.id,
@@ -83,9 +83,9 @@ test('un reclamo creado aparece como evento y en el resumen de pendientes', () =
 
 test('un reclamo pagado aparece en eventos y en el resumen con el monto total', async () => {
   const grupo = crearGrupoBase();
-  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B' });
+  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B', password: 'clave1234' });
   const delegados = ['Ana', 'Carla', 'Elena'].map((nombre) => {
-    const d = agregarMiembro(grupo.id, { nombre });
+    const d = agregarMiembro(grupo.id, { nombre, password: 'clave1234' });
     marcarAporte(grupo.id, d.id);
     return d;
   });
@@ -112,9 +112,9 @@ test('un reclamo pagado aparece en eventos y en el resumen con el monto total', 
 
 test('un reclamo rechazado se refleja en el resumen', () => {
   const grupo = crearGrupoBase();
-  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B' });
+  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B', password: 'clave1234' });
   const delegados = ['Ana', 'Carla', 'Elena'].map((nombre) => {
-    const d = agregarMiembro(grupo.id, { nombre });
+    const d = agregarMiembro(grupo.id, { nombre, password: 'clave1234' });
     marcarAporte(grupo.id, d.id);
     return d;
   });
@@ -136,8 +136,8 @@ test('un reclamo rechazado se refleja en el resumen', () => {
 
 test('los eventos quedan ordenados cronológicamente', async () => {
   const grupo = crearGrupoBase();
-  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B' });
-  const ana = agregarMiembro(grupo.id, { nombre: 'Ana' });
+  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B', password: 'clave1234' });
+  const ana = agregarMiembro(grupo.id, { nombre: 'Ana', password: 'clave1234' });
   marcarAporte(grupo.id, ana.id); // evento más temprano
 
   const reclamo = crearReclamo({

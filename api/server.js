@@ -16,6 +16,8 @@ import {
 } from '../src/grupo/grupo.js';
 import { confirmarAporte } from '../src/depositos/depositos.js';
 import { obtenerDireccion } from '../src/shared/wdk.js';
+import { crearSesion, verificarSesion, ErrorAutenticacion } from '../src/shared/auth.js';
+import { verificarLogin } from '../src/grupo/grupo.js';
 import {
   crearReclamo,
   listarReclamos,
@@ -45,6 +47,8 @@ function manejar(fn) {
     } catch (err) {
       if (err instanceof ErrorValidacion) {
         res.status(400).json({ error: err.message });
+      } else if (err instanceof ErrorAutenticacion) {
+        res.status(401).json({ error: err.message });
       } else if (err.message?.startsWith('WDK CLI:')) {
         // src/shared/wdk.js ya arma un mensaje claro (ej. "wallet no desbloqueada" con la
         // sugerencia de qué correr) — mostrarlo tal cual en vez de un 500 genérico que lo
@@ -59,6 +63,18 @@ function manejar(fn) {
   };
 }
 
+// Exige que quien llama esté logueado (token de crearSesion, ver /login) COMO el
+// miembro/delegado que dice ser — evita que cualquiera vote eligiendo cualquier nombre
+// de la lista sin probar que es esa persona.
+function requerirSesionPropia(req, miembroIdEsperado) {
+  const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
+  const sesion = token && verificarSesion(token);
+  if (!sesion || sesion.miembroId !== miembroIdEsperado) {
+    throw new ErrorAutenticacion('Necesitás iniciar sesión como ese miembro para hacer esto.');
+  }
+  return sesion;
+}
+
 app.get('/api/grupos', manejar(() => listarGrupos()));
 
 app.post('/api/grupos', manejar((req) => crearGrupo(req.body)));
@@ -70,6 +86,15 @@ app.delete('/api/grupos/:grupoId', manejar((req) => eliminarGrupo(req.params.gru
 app.post(
   '/api/grupos/:grupoId/miembros',
   manejar((req) => agregarMiembro(req.params.grupoId, req.body))
+);
+
+app.post(
+  '/api/grupos/:grupoId/miembros/:miembroId/login',
+  manejar((req) => {
+    const miembro = verificarLogin(req.params.grupoId, req.params.miembroId, req.body.password);
+    const token = crearSesion(req.params.grupoId, miembro.id);
+    return { token, miembro };
+  })
 );
 
 app.get(
@@ -132,12 +157,18 @@ app.get(
 
 app.post(
   '/api/reclamos/:reclamoId/aprobar',
-  manejar((req) => aprobarReclamo(req.params.reclamoId, req.body.delegadoId))
+  manejar((req) => {
+    requerirSesionPropia(req, req.body.delegadoId);
+    return aprobarReclamo(req.params.reclamoId, req.body.delegadoId);
+  })
 );
 
 app.post(
   '/api/reclamos/:reclamoId/rechazar',
-  manejar((req) => rechazarReclamo(req.params.reclamoId, req.body.delegadoId))
+  manejar((req) => {
+    requerirSesionPropia(req, req.body.delegadoId);
+    return rechazarReclamo(req.params.reclamoId, req.body.delegadoId);
+  })
 );
 
 app.post(
