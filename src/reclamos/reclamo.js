@@ -3,13 +3,15 @@
 // ningún lado — análisis de imagen vía QVAC está fuera de alcance del hackathon, ver
 // README "Qué es real vs simulado"), monto solicitado y descripción.
 //
-// El reclamo nace en estado "pendiente". La aprobación de delegados y el cálculo de
-// quórum son el paso 5 (todavía no implementado acá).
+// El reclamo nace en estado "pendiente". El panel de aprobación de delegados (paso 5)
+// vive acá mismo: aprobarReclamo/rechazarReclamo. El quórum es simétrico — el mismo
+// número de votos (grupo.quorumDelegados) decide tanto la aprobación como el rechazo,
+// consistente con cómo ya está definido quorumDelegados en grupo.js.
 
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import { leer, escribir } from '../shared/jsonStore.js';
-import { obtenerGrupo, ErrorValidacion } from '../grupo/grupo.js';
+import { obtenerGrupo, delegadosElegibles, ErrorValidacion } from '../grupo/grupo.js';
 
 const DB_PATH = process.env.RECLAMOS_DB_PATH || join(process.cwd(), 'data', 'reclamos.json');
 
@@ -79,4 +81,50 @@ export function obtenerReclamo(reclamoId) {
   const reclamo = cargarReclamos().reclamos.find((r) => r.id === reclamoId);
   if (!reclamo) throw new ErrorValidacion(`No existe un reclamo con id ${reclamoId}.`);
   return reclamo;
+}
+
+function validarVoto(reclamo, delegadoId) {
+  if (reclamo.estado !== 'pendiente') {
+    throw new ErrorValidacion(`El reclamo ya está en estado "${reclamo.estado}", no admite más votos.`);
+  }
+  const elegible = delegadosElegibles(reclamo.grupoId).some((d) => d.id === delegadoId);
+  if (!elegible) {
+    throw new ErrorValidacion(
+      `El miembro ${delegadoId} no es un delegado elegible para votar en este grupo (debe ser delegado y estar al día con su cuota).`
+    );
+  }
+  if (reclamo.aprobaciones.includes(delegadoId) || reclamo.rechazos.includes(delegadoId)) {
+    throw new ErrorValidacion('Este delegado ya votó este reclamo.');
+  }
+}
+
+function votar(reclamoId, delegadoId, campo, estadoSiAlcanzaQuorum) {
+  const reclamo = obtenerReclamo(reclamoId);
+  validarVoto(reclamo, delegadoId);
+  const grupo = obtenerGrupo(reclamo.grupoId);
+
+  const db = cargarReclamos();
+  const actualizado = db.reclamos.find((r) => r.id === reclamoId);
+  actualizado[campo].push(delegadoId);
+  if (actualizado[campo].length >= grupo.quorumDelegados) {
+    actualizado.estado = estadoSiAlcanzaQuorum;
+  }
+  guardarReclamos(db);
+  return actualizado;
+}
+
+/**
+ * Un delegado elegible aprueba un reclamo pendiente. Si con este voto se alcanza el
+ * quórum de aprobaciones del grupo, el reclamo pasa a estado "aprobado".
+ */
+export function aprobarReclamo(reclamoId, delegadoId) {
+  return votar(reclamoId, delegadoId, 'aprobaciones', 'aprobado');
+}
+
+/**
+ * Un delegado elegible rechaza un reclamo pendiente. Si con este voto se alcanza el
+ * quórum de rechazos del grupo, el reclamo pasa a estado "rechazado".
+ */
+export function rechazarReclamo(reclamoId, delegadoId) {
+  return votar(reclamoId, delegadoId, 'rechazos', 'rechazado');
 }
