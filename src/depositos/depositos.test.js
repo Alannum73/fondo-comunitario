@@ -26,6 +26,7 @@ const { ErrorValidacion } = await import('../grupo/grupo.js');
 const crearGrupoDePrueba = () =>
   crearGrupo({
     nombre: 'Repartidores Cochabamba',
+    walletName: 'fondo-test',
     cuotaPeriodica: 5,
     montoMaxSiniestro: 50,
     delegados: ['Ana', 'Carla', 'Elena'],
@@ -71,4 +72,25 @@ test('depósitos sucesivos consumen el snapshot y no se re-cuentan', async () =>
   // Sube otros 5 (segundo depósito real): ahora sí confirma a Carla.
   const miembro = await confirmarAporte(grupo.id, carla.id, { ...opcionesWdk, obtenerBalance: async () => 10 });
   assert.equal(miembro.alDia, true);
+});
+
+test('usa la wallet propia del grupo (grupo.walletName) si no se pasa "wallet" explícito', async () => {
+  const grupo = crearGrupo({
+    nombre: 'Grupo con wallet propia',
+    walletName: 'wallet-del-grupo-especifico',
+    cuotaPeriodica: 5,
+    montoMaxSiniestro: 50,
+    delegados: ['Ana', 'Carla', 'Elena'],
+    quorumDelegados: 2,
+  });
+  const ana = agregarMiembro(grupo.id, { nombre: 'Ana' });
+
+  let walletRecibida;
+  const obtenerBalance = async ({ wallet }) => {
+    walletRecibida = wallet;
+    return 5;
+  };
+
+  await confirmarAporte(grupo.id, ana.id, { network: 'sepolia', token: 'usdt', obtenerBalance });
+  assert.equal(walletRecibida, 'wallet-del-grupo-especifico');
 });

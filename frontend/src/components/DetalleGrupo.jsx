@@ -89,6 +89,10 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
 
       <div className="datos-grupo">
         <div className="dato-pill">
+          <span className="dato-etiqueta">Wallet</span>
+          <span className="dato-valor">{grupo.walletName}</span>
+        </div>
+        <div className="dato-pill">
           <span className="dato-etiqueta">Cuota periódica</span>
           <span className="dato-valor">{grupo.cuotaPeriodica} USDT</span>
         </div>

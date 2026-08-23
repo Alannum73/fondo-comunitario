@@ -9,6 +9,7 @@ import { crearReclamo, aprobarReclamo } from '../src/reclamos/reclamo.js';
 
 const grupo = crearGrupo({
   nombre: 'Repartidores Cochabamba',
+  walletName: 'fondo-demo',
   cuotaPeriodica: 5,
   montoMaxSiniestro: 50,
   delegados: ['Usuario A', 'Usuario C', 'Usuario E'],

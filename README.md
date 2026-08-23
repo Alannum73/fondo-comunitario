@@ -74,6 +74,8 @@ Ver `.env.example`. Nunca usar una wallet personal — este proyecto usa una wal
 
 En este MVP, el dispositivo que crea el fondo actúa como custodio de la wallet. El "quórum de delegados" que aprueba un reclamo es lógica de aplicación (off-chain) que dispara la transacción — no es una garantía criptográfica del protocolo. En producción esto se resolvería con multisig real entre delegados.
 
+**Cada grupo/fondo tiene su propia wallet de WDK CLI** (`grupo.walletName`), creada de antemano por el usuario con `wdk wallet create` — la passphrase la elige y la recuerda el usuario, la app nunca la ve ni la guarda. Esto evita que dos grupos distintos compartan el mismo balance de USDT: sin esto, un pago aprobado en un grupo podría gastar plata que en realidad correspondía a los aportes de otro grupo.
+
 ## Roadmap (qué faltaría para producción)
 
 - Multisig real entre delegados para la wallet del fondo.

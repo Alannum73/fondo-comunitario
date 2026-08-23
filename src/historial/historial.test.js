@@ -34,6 +34,7 @@ const opcionesWdk = {
 const crearGrupoBase = () =>
   crearGrupo({
     nombre: 'Repartidores Cochabamba',
+    walletName: 'fondo-test',
     cuotaPeriodica: 5,
     montoMaxSiniestro: 50,
     delegados: ['Ana', 'Carla', 'Elena'],

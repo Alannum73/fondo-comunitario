@@ -5,6 +5,7 @@
 // balance ANTES de intentar `wdk send` (decisión ya tomada, ver README/CLAUDE.md).
 
 import { obtenerReclamo, marcarReclamoPagado, ErrorValidacion } from '../reclamos/reclamo.js';
+import { obtenerGrupo } from '../grupo/grupo.js';
 import { obtenerBalance as obtenerBalanceWdk, enviarPago as enviarPagoWdk } from '../shared/wdk.js';
 
 /**
@@ -21,6 +22,8 @@ export async function pagarReclamo(
   { wallet, network, token, obtenerBalance = obtenerBalanceWdk, enviarPago = enviarPagoWdk }
 ) {
   const reclamo = obtenerReclamo(reclamoId);
+  const grupo = obtenerGrupo(reclamo.grupoId);
+  const walletUsada = wallet || grupo.walletName;
 
   if (reclamo.estado !== 'aprobado') {
     throw new ErrorValidacion(
@@ -31,7 +34,7 @@ export async function pagarReclamo(
     throw new ErrorValidacion('Falta la dirección de destino del pago.');
   }
 
-  const balanceActual = await obtenerBalance({ wallet, network, token });
+  const balanceActual = await obtenerBalance({ wallet: walletUsada, network, token });
   if (balanceActual < reclamo.montoSolicitado) {
     throw new ErrorValidacion(
       `Balance insuficiente en la wallet del fondo para pagar este reclamo ` +
@@ -40,7 +43,7 @@ export async function pagarReclamo(
   }
 
   const recibo = await enviarPago({
-    wallet,
+    wallet: walletUsada,
     network,
     token,
     to: direccionDestino.trim(),

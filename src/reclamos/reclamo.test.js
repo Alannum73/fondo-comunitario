@@ -26,6 +26,7 @@ const { crearReclamo, listarReclamos, obtenerReclamo, aprobarReclamo, rechazarRe
 const crearGrupoConMiembro = () => {
   const grupo = crearGrupo({
     nombre: 'Repartidores Cochabamba',
+    walletName: 'fondo-test',
     cuotaPeriodica: 5,
     montoMaxSiniestro: 50,
     delegados: ['Ana', 'Carla', 'Elena'],

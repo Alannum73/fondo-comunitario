@@ -11,6 +11,7 @@ import { pagarReclamo } from '../src/tesoreria/tesoreria.js';
 
 const grupo = crearGrupo({
   nombre: 'Repartidores Cochabamba',
+  walletName: 'fondo-demo',
   cuotaPeriodica: 5,
   montoMaxSiniestro: 50,
   delegados: ['Usuario A', 'Usuario C', 'Usuario E'],
@@ -36,7 +37,7 @@ console.log(`Reclamo aprobado (id ${reclamo.id}) | monto: $${reclamo.montoSolici
 
 const direccionDestino = '0x000000000000000000000000000000000000dEaD'; // dirección de ejemplo
 const pagado = await pagarReclamo(reclamo.id, direccionDestino, {
-  wallet: 'fondo-comunitario-dev',
+  // sin "wallet": usa grupo.walletName ("fondo-demo") automáticamente
   network: 'sepolia',
   token: 'usdt',
   obtenerBalance: async () => 100, // simula balance suficiente en la wallet del fondo

@@ -23,6 +23,7 @@ const { crearGrupo, agregarMiembro, marcarAporte, delegadosElegibles, obtenerGru
 
 const datosValidos = () => ({
   nombre: 'Repartidores Cochabamba',
+  walletName: 'fondo-test',
   cuotaPeriodica: 5,
   montoMaxSiniestro: 50,
   delegados: ['Ana', 'Carla', 'Elena'],
@@ -32,9 +33,21 @@ const datosValidos = () => ({
 test('crea un grupo válido', () => {
   const grupo = crearGrupo(datosValidos());
   assert.equal(grupo.nombre, 'Repartidores Cochabamba');
+  assert.equal(grupo.walletName, 'fondo-test');
   assert.equal(grupo.delegados.length, 3);
   assert.equal(grupo.miembros.length, 0);
   assert.ok(grupo.id);
+});
+
+test('rechaza crear un grupo sin walletName', () => {
+  const { walletName, ...sinWallet } = datosValidos();
+  assert.throws(() => crearGrupo(sinWallet), ErrorValidacion);
+});
+
+test('dos grupos pueden tener wallets distintas', () => {
+  const grupoA = crearGrupo({ ...datosValidos(), nombre: 'Grupo A', walletName: 'wallet-a' });
+  const grupoB = crearGrupo({ ...datosValidos(), nombre: 'Grupo B', walletName: 'wallet-b' });
+  assert.notEqual(grupoA.walletName, grupoB.walletName);
 });
 
 test('rechaza cuota <= 0', () => {

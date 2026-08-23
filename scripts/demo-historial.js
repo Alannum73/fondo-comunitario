@@ -10,6 +10,7 @@ import { obtenerHistorial } from '../src/historial/historial.js';
 
 const grupo = crearGrupo({
   nombre: 'Repartidores Cochabamba',
+  walletName: 'fondo-demo',
   cuotaPeriodica: 5,
   montoMaxSiniestro: 50,
   delegados: ['Usuario A', 'Usuario C', 'Usuario E'],
@@ -33,7 +34,7 @@ const reclamo = crearReclamo({
 aprobarReclamo(reclamo.id, delegados[0].id);
 aprobarReclamo(reclamo.id, delegados[1].id);
 await pagarReclamo(reclamo.id, '0x000000000000000000000000000000000000dEaD', {
-  wallet: 'fondo-comunitario-dev',
+  // sin "wallet": usa grupo.walletName ("fondo-demo") automáticamente
   network: 'sepolia',
   token: 'usdt',
   obtenerBalance: async () => 100,

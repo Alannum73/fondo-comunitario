@@ -70,9 +70,12 @@ app.get(
 app.post(
   '/api/grupos/:grupoId/depositos/confirmar',
   manejar((req) => {
+    // Sin "wallet" acá: cada grupo tiene la suya propia (grupo.walletName), y
+    // confirmarAporte() ya cae en eso si no se manda una explícita. Si mandáramos
+    // WDK_WALLET_NAME del .env como fallback, pisaría la wallet del grupo.
     const { miembroId, wallet, network, token } = req.body;
     return confirmarAporte(req.params.grupoId, miembroId, {
-      wallet: wallet || process.env.WDK_WALLET_NAME,
+      wallet,
       network: network || process.env.WDK_NETWORK,
       token: token || process.env.WDK_TOKEN,
     });
@@ -120,9 +123,11 @@ app.post(
 app.post(
   '/api/reclamos/:reclamoId/pagar',
   manejar((req) => {
+    // Sin fallback a WDK_WALLET_NAME acá tampoco: pagarReclamo() ya usa la wallet
+    // propia del grupo del reclamo (grupo.walletName) si no se manda una explícita.
     const { direccionDestino, wallet, network, token } = req.body;
     return pagarReclamo(req.params.reclamoId, direccionDestino, {
-      wallet: wallet || process.env.WDK_WALLET_NAME,
+      wallet,
       network: network || process.env.WDK_NETWORK,
       token: token || process.env.WDK_TOKEN,
     });

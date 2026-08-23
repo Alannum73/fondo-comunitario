@@ -31,6 +31,7 @@ const DIRECCION_DESTINO = '0x24c7E155317d21ee6a9bB755A077Abe3f12169Ff';
 const crearReclamoAprobado = () => {
   const grupo = crearGrupo({
     nombre: 'Repartidores Cochabamba',
+    walletName: 'fondo-test',
     cuotaPeriodica: 5,
     montoMaxSiniestro: 50,
     delegados: ['Ana', 'Carla', 'Elena'],
@@ -96,6 +97,7 @@ test('rechaza pagar si el balance es insuficiente', async () => {
 test('rechaza pagar un reclamo que no está aprobado', async () => {
   const grupo = crearGrupo({
     nombre: 'Otro grupo',
+    walletName: 'fondo-test-2',
     cuotaPeriodica: 5,
     montoMaxSiniestro: 50,
     delegados: ['Ana', 'Carla', 'Elena'],
@@ -140,4 +142,46 @@ test('rechaza pagar dos veces el mismo reclamo', async () => {
 
   await pagarReclamo(reclamo.id, DIRECCION_DESTINO, opciones);
   await assert.rejects(() => pagarReclamo(reclamo.id, DIRECCION_DESTINO, opciones), ErrorValidacion);
+});
+
+test('usa la wallet propia del grupo (grupo.walletName) si no se pasa "wallet" explícito', async () => {
+  const grupo = crearGrupo({
+    nombre: 'Grupo con wallet propia',
+    walletName: 'wallet-del-grupo-especifico',
+    cuotaPeriodica: 5,
+    montoMaxSiniestro: 50,
+    delegados: ['Ana', 'Carla', 'Elena'],
+    quorumDelegados: 2,
+  });
+  const miembro = agregarMiembro(grupo.id, { nombre: 'Usuario B' });
+  const delegados = ['Ana', 'Carla', 'Elena'].map((nombre) => {
+    const d = agregarMiembro(grupo.id, { nombre });
+    marcarAporte(grupo.id, d.id);
+    return d;
+  });
+  const reclamo = crearReclamo({
+    grupoId: grupo.id,
+    miembroId: miembro.id,
+    montoSolicitado: 30,
+    descripcion: 'Choque leve',
+    fotoPath: '/uploads/siniestro-3.jpg',
+  });
+  aprobarReclamo(reclamo.id, delegados[0].id);
+  aprobarReclamo(reclamo.id, delegados[1].id);
+
+  const walletsRecibidas = [];
+  await pagarReclamo(reclamo.id, DIRECCION_DESTINO, {
+    network: 'sepolia',
+    token: 'usdt',
+    obtenerBalance: async ({ wallet }) => {
+      walletsRecibidas.push(wallet);
+      return 100;
+    },
+    enviarPago: async ({ wallet }) => {
+      walletsRecibidas.push(wallet);
+      return { txHash: '0xabc' };
+    },
+  });
+
+  assert.deepEqual(walletsRecibidas, ['wallet-del-grupo-especifico', 'wallet-del-grupo-especifico']);
 });

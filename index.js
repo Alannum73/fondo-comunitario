@@ -29,14 +29,14 @@ async function preguntar(texto) {
   return done ? '' : value;
 }
 
+// La wallet ya no viene de acá — cada grupo tiene la suya propia (grupo.walletName).
+// Solo la red y el token son configuración global (misma cadena/token para todos los fondos).
 function opcionesWdk() {
-  const { WDK_WALLET_NAME: wallet, WDK_NETWORK: network, WDK_TOKEN: token } = process.env;
-  if (!wallet || !network) {
-    console.log(
-      '\n⚠️  Faltan WDK_WALLET_NAME / WDK_NETWORK en tu .env (copiá .env.example a .env y completalo).\n'
-    );
+  const { WDK_NETWORK: network, WDK_TOKEN: token } = process.env;
+  if (!network) {
+    console.log('\n⚠️  Falta WDK_NETWORK en tu .env (copiá .env.example a .env y completalo).\n');
   }
-  return { wallet, network, token };
+  return { network, token };
 }
 
 function manejarError(error) {
@@ -48,6 +48,13 @@ function manejarError(error) {
 }
 
 async function crearGrupoFlujo() {
+  console.log(
+    '\nCada grupo/fondo necesita su propia wallet de WDK CLI, ya creada, con una passphrase que solo vos conocés.\n' +
+      'Si todavía no la creaste, abrí OTRA terminal ahora y corré (sin cerrar esta app):\n' +
+      '  npx wdk wallet create --name <nombre-de-wallet>\n'
+  );
+  const walletName = await preguntar('Nombre de la wallet ya creada para este grupo: ');
+
   const nombre = await preguntar('Nombre del grupo: ');
   const cuotaPeriodica = Number(await preguntar('Cuota periódica (USDT): '));
   const montoMaxSiniestro = Number(await preguntar('Monto máx por siniestro (USDT): '));
@@ -57,8 +64,8 @@ async function crearGrupoFlujo() {
     .filter(Boolean);
   const quorumDelegados = Number(await preguntar('Quórum de delegados: '));
 
-  const grupo = crearGrupo({ nombre, cuotaPeriodica, montoMaxSiniestro, delegados, quorumDelegados });
-  console.log(`\n✓ Grupo creado. id: ${grupo.id}\n`);
+  const grupo = crearGrupo({ nombre, walletName, cuotaPeriodica, montoMaxSiniestro, delegados, quorumDelegados });
+  console.log(`\n✓ Grupo creado. id: ${grupo.id} (wallet: ${grupo.walletName})\n`);
 }
 
 async function verGruposFlujo() {
@@ -71,6 +78,7 @@ async function verGruposFlujo() {
   for (const g of grupos) {
     const alDia = g.miembros.filter((m) => m.alDia).length;
     console.log(`- ${g.nombre} (id ${g.id})`);
+    console.log(`    wallet: ${g.walletName}`);
     console.log(
       `    cuota: ${g.cuotaPeriodica} | monto máx: ${g.montoMaxSiniestro} | quórum: ${g.quorumDelegados}/${g.delegados.length} delegados`
     );

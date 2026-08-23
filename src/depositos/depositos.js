@@ -1,12 +1,13 @@
 // Confirmación de depósitos de cuota — paso 3 del roadmap.
 //
-// Modelo: hay una sola wallet de fondo (custodio), así que no podemos atribuir
-// una entrada de balance a un miembro específico por dirección. En su lugar,
-// comparamos el balance actual contra el último snapshot guardado: si subió al
-// menos lo de una cuota, asumimos que el depósito que se está confirmando es
-// ese y avanzamos. Es una limitación conocida (igual que el modelo de custodia
-// y el quórum off-chain, ver README) — para el alcance del hackathon alcanza
-// con un flujo secuencial (un delegado confirma un aporte a la vez).
+// Modelo: cada grupo tiene su propia wallet de WDK CLI (grupo.walletName), pero dentro
+// de esa wallet seguimos sin poder atribuir una entrada de balance a un miembro
+// específico por dirección (la wallet es custodio único del grupo, no una por miembro).
+// En su lugar, comparamos el balance actual contra el último snapshot guardado: si
+// subió al menos lo de una cuota, asumimos que el depósito que se está confirmando es
+// ese y avanzamos. Es una limitación conocida (igual que el modelo de custodia y el
+// quórum off-chain, ver README) — para el alcance del hackathon alcanza con un flujo
+// secuencial (un delegado confirma un aporte a la vez).
 
 import { leer, escribir } from '../shared/jsonStore.js';
 import { obtenerGrupo, marcarAporte, ErrorValidacion } from '../grupo/grupo.js';
@@ -38,8 +39,9 @@ function guardarUltimoBalance(grupoId, balance) {
  */
 export async function confirmarAporte(grupoId, miembroId, { wallet, network, token, obtenerBalance = obtenerBalanceWdk }) {
   const grupo = obtenerGrupo(grupoId);
+  const walletUsada = wallet || grupo.walletName;
 
-  const balanceActual = await obtenerBalance({ wallet, network, token });
+  const balanceActual = await obtenerBalance({ wallet: walletUsada, network, token });
   const ultimoBalance = leerUltimoBalance(grupoId);
   const incremento = balanceActual - ultimoBalance;
 

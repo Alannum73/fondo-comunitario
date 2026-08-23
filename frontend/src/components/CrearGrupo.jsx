@@ -3,6 +3,7 @@ import { crearGrupo } from '../api.js';
 
 const inicial = {
   nombre: '',
+  walletName: '',
   cuotaPeriodica: '',
   montoMaxSiniestro: '',
   delegados: '',
@@ -25,6 +26,7 @@ export default function CrearGrupo({ onCreado, onCancelar }) {
     try {
       const grupo = await crearGrupo({
         nombre: form.nombre,
+        walletName: form.walletName,
         cuotaPeriodica: Number(form.cuotaPeriodica),
         montoMaxSiniestro: Number(form.montoMaxSiniestro),
         delegados: form.delegados.split(',').map((d) => d.trim()).filter(Boolean),
@@ -49,6 +51,16 @@ export default function CrearGrupo({ onCreado, onCancelar }) {
         <label>
           Nombre del grupo
           <input value={form.nombre} onChange={(e) => actualizar('nombre', e.target.value)} required />
+        </label>
+
+        <label>
+          Nombre de la wallet (ya creada con <code>wdk wallet create --name ...</code>)
+          <input
+            value={form.walletName}
+            onChange={(e) => actualizar('walletName', e.target.value)}
+            placeholder="fondo-mi-grupo"
+            required
+          />
         </label>
 
         <label>

@@ -25,9 +25,14 @@ function guardarGrupos(db) {
   escribir(DB_PATH, db);
 }
 
-function validarDatosGrupo({ nombre, cuotaPeriodica, montoMaxSiniestro, delegados, quorumDelegados }) {
+function validarDatosGrupo({ nombre, walletName, cuotaPeriodica, montoMaxSiniestro, delegados, quorumDelegados }) {
   if (!nombre || typeof nombre !== 'string' || !nombre.trim()) {
     throw new ErrorValidacion('El grupo necesita un nombre.');
+  }
+  if (!walletName || typeof walletName !== 'string' || !walletName.trim()) {
+    throw new ErrorValidacion(
+      'El grupo necesita el nombre de una wallet de WDK CLI ya creada (cada grupo tiene su propia wallet).'
+    );
   }
   if (!Number.isFinite(cuotaPeriodica) || cuotaPeriodica <= 0) {
     throw new ErrorValidacion('La cuota periódica debe ser un número mayor a 0.');
@@ -51,8 +56,10 @@ function validarDatosGrupo({ nombre, cuotaPeriodica, montoMaxSiniestro, delegado
 }
 
 /**
- * Crea un nuevo grupo/fondo.
- * @param {{nombre: string, cuotaPeriodica: number, montoMaxSiniestro: number, delegados: string[], quorumDelegados: number}} datos
+ * Crea un nuevo grupo/fondo. Cada grupo tiene su propia wallet de WDK CLI (`walletName`)
+ * — ya tiene que existir (creada por el usuario con `wdk wallet create`, passphrase propia
+ * que solo el usuario conoce). Esto evita que varios grupos compartan un mismo balance.
+ * @param {{nombre: string, walletName: string, cuotaPeriodica: number, montoMaxSiniestro: number, delegados: string[], quorumDelegados: number}} datos
  */
 export function crearGrupo(datos) {
   validarDatosGrupo(datos);
@@ -61,6 +68,7 @@ export function crearGrupo(datos) {
   const grupo = {
     id: randomUUID(),
     nombre: datos.nombre.trim(),
+    walletName: datos.walletName.trim(),
     cuotaPeriodica: datos.cuotaPeriodica,
     montoMaxSiniestro: datos.montoMaxSiniestro,
     delegados: datos.delegados.map((d) => d.trim()),
