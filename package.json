@@ -6,12 +6,15 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "test": "node --test"
+    "test": "node --test",
+    "server": "node api/server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@tetherto/wdk-cli": "^1.0.0-beta.3"
+    "@tetherto/wdk-cli": "^1.0.0-beta.3",
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
   }
 }
