@@ -12,6 +12,7 @@ import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import { leer, escribir } from '../shared/jsonStore.js';
 import { obtenerGrupo, delegadosElegibles, ErrorValidacion } from '../grupo/grupo.js';
+export { ErrorValidacion };
 
 const DB_PATH = process.env.RECLAMOS_DB_PATH || join(process.cwd(), 'data', 'reclamos.json');
 
@@ -127,4 +128,25 @@ export function aprobarReclamo(reclamoId, delegadoId) {
  */
 export function rechazarReclamo(reclamoId, delegadoId) {
   return votar(reclamoId, delegadoId, 'rechazos', 'rechazado');
+}
+
+/**
+ * Marca un reclamo aprobado como pagado, guardando el recibo de la transacción real
+ * (JSON crudo de `wdk send`). La llama el módulo de tesorería (paso 6) tras ejecutar el pago.
+ */
+export function marcarReclamoPagado(reclamoId, recibo) {
+  const reclamoActual = obtenerReclamo(reclamoId);
+  if (reclamoActual.estado !== 'aprobado') {
+    throw new ErrorValidacion(
+      `El reclamo debe estar "aprobado" para marcarlo como pagado (estado actual: "${reclamoActual.estado}").`
+    );
+  }
+
+  const db = cargarReclamos();
+  const reclamo = db.reclamos.find((r) => r.id === reclamoId);
+  reclamo.estado = 'pagado';
+  reclamo.recibo = recibo;
+  reclamo.fechaPago = new Date().toISOString();
+  guardarReclamos(db);
+  return reclamo;
 }
