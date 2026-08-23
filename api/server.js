@@ -10,9 +10,19 @@ import {
   obtenerGrupo,
   agregarMiembro,
   delegadosElegibles,
+  marcarAporte,
   ErrorValidacion,
 } from '../src/grupo/grupo.js';
 import { confirmarAporte } from '../src/depositos/depositos.js';
+import {
+  crearReclamo,
+  listarReclamos,
+  obtenerReclamo,
+  aprobarReclamo,
+  rechazarReclamo,
+} from '../src/reclamos/reclamo.js';
+import { pagarReclamo } from '../src/tesoreria/tesoreria.js';
+import { obtenerHistorial } from '../src/historial/historial.js';
 
 // Sin esto, WDK_WALLET_NAME/WDK_NETWORK/WDK_TOKEN quedan undefined salvo que se exporten
 // a mano en la shell antes de `npm run server` — el frontend no los manda en el body,
@@ -67,6 +77,61 @@ app.post(
       token: token || process.env.WDK_TOKEN,
     });
   })
+);
+
+app.post(
+  '/api/grupos/:grupoId/depositos/marcar-manual',
+  manejar((req) => marcarAporte(req.params.grupoId, req.body.miembroId))
+);
+
+app.get(
+  '/api/grupos/:grupoId/reclamos',
+  manejar((req) => listarReclamos(req.params.grupoId))
+);
+
+app.post(
+  '/api/grupos/:grupoId/reclamos',
+  manejar((req) =>
+    crearReclamo({
+      grupoId: req.params.grupoId,
+      miembroId: req.body.miembroId,
+      montoSolicitado: Number(req.body.montoSolicitado),
+      descripcion: req.body.descripcion,
+      fotoPath: req.body.fotoPath,
+    })
+  )
+);
+
+app.get(
+  '/api/reclamos/:reclamoId',
+  manejar((req) => obtenerReclamo(req.params.reclamoId))
+);
+
+app.post(
+  '/api/reclamos/:reclamoId/aprobar',
+  manejar((req) => aprobarReclamo(req.params.reclamoId, req.body.delegadoId))
+);
+
+app.post(
+  '/api/reclamos/:reclamoId/rechazar',
+  manejar((req) => rechazarReclamo(req.params.reclamoId, req.body.delegadoId))
+);
+
+app.post(
+  '/api/reclamos/:reclamoId/pagar',
+  manejar((req) => {
+    const { direccionDestino, wallet, network, token } = req.body;
+    return pagarReclamo(req.params.reclamoId, direccionDestino, {
+      wallet: wallet || process.env.WDK_WALLET_NAME,
+      network: network || process.env.WDK_NETWORK,
+      token: token || process.env.WDK_TOKEN,
+    });
+  })
+);
+
+app.get(
+  '/api/grupos/:grupoId/historial',
+  manejar((req) => obtenerHistorial(req.params.grupoId))
 );
 
 app.listen(PORT, () => {

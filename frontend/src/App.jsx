@@ -6,9 +6,10 @@ import ListaGrupos from './components/ListaGrupos.jsx';
 import CrearGrupo from './components/CrearGrupo.jsx';
 import EntrarFondo from './components/EntrarFondo.jsx';
 import DetalleGrupo from './components/DetalleGrupo.jsx';
+import HistorialGrupo from './components/HistorialGrupo.jsx';
 
 export default function App() {
-  const [vista, setVista] = useState('inicio'); // 'inicio' | 'lista' | 'crear' | 'entrar' | 'detalle'
+  const [vista, setVista] = useState('inicio'); // 'inicio' | 'lista' | 'crear' | 'entrar' | 'detalle' | 'historial'
   const [grupos, setGrupos] = useState([]);
   const [grupoActivo, setGrupoActivo] = useState(null);
   const [usuarioActual, setUsuarioActual] = useState(null);
@@ -111,7 +112,12 @@ export default function App() {
             usuarioActual={usuarioActual}
             onVolver={irAInicio}
             onActualizar={refrescarGrupoActivo}
+            onVerHistorial={() => setVista('historial')}
           />
+        )}
+
+        {vista === 'historial' && grupoActivo && (
+          <HistorialGrupo grupoId={grupoActivo.id} onVolver={() => setVista('detalle')} />
         )}
       </main>
     </div>

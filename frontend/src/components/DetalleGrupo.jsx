@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { agregarMiembro, confirmarAporte, delegadosElegibles } from '../api.js';
+import { agregarMiembro, confirmarAporte, marcarAporteManual, delegadosElegibles } from '../api.js';
+import ReclamosGrupo from './ReclamosGrupo.jsx';
 
-export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActualizar }) {
+export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActualizar, onVerHistorial }) {
   const [nombreMiembro, setNombreMiembro] = useState('');
   const [miembroDeposito, setMiembroDeposito] = useState('');
   const [elegibles, setElegibles] = useState([]);
@@ -43,6 +44,23 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
     }
   }
 
+  async function handleMarcarManual() {
+    if (!miembroDeposito) {
+      setError('Elegí un miembro primero.');
+      return;
+    }
+    setError(null);
+    setMensaje(null);
+    try {
+      await marcarAporteManual(grupo.id, miembroDeposito);
+      setMensaje('Aporte marcado manualmente (simulado, sin verificar contra WDK).');
+      setMiembroDeposito('');
+      onActualizar();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   return (
     <section>
       <div className="encabezado">
@@ -50,7 +68,10 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
           <h2>{grupo.nombre}</h2>
           {usuarioActual && <p className="bienvenida">Hola, {usuarioActual.nombre} 👋</p>}
         </div>
-        <button onClick={onVolver}>← Inicio</button>
+        <div className="grupo-botones">
+          <button onClick={onVerHistorial}>Historial</button>
+          <button onClick={onVolver}>← Inicio</button>
+        </div>
       </div>
 
       <div className="datos-grupo">
@@ -107,12 +128,17 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
           {cargando ? 'Verificando en WDK...' : 'Confirmar aporte'}
         </button>
       </form>
+      <button className="enlace-manual" type="button" onClick={handleMarcarManual}>
+        ⚠️ Marcar manual (sin WDK, solo pruebas)
+      </button>
 
       <h3>Delegados elegibles para votar ({elegibles.length})</h3>
       <ul className="lista-miembros">
         {elegibles.map((m) => <li key={m.id}>{m.nombre}</li>)}
         {elegibles.length === 0 && <li className="vacio">Ninguno todavía (deben ser delegados y estar al día).</li>}
       </ul>
+
+      <ReclamosGrupo grupo={grupo} elegibles={elegibles} />
     </section>
   );
 }
