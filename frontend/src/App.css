@@ -497,6 +497,36 @@ input:focus, select:focus {
   min-width: 130px;
 }
 
+/* ---- Pestañas ---- */
+
+.pestanas {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--borde);
+}
+
+.pestana {
+  border: none;
+  border-radius: 0;
+  background: none;
+  padding: 0.6rem 0.9rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.pestana:hover {
+  background: none;
+  color: var(--texto);
+}
+
+.pestana-activa {
+  color: var(--acento);
+  border-bottom-color: var(--acento);
+}
+
 .dato-etiqueta {
   font-size: 0.72rem;
   color: var(--texto-suave);

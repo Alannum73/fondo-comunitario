@@ -2,7 +2,14 @@ import { useEffect, useState } from 'react';
 import { agregarMiembro, confirmarAporte, marcarAporteManual, delegadosElegibles } from '../api.js';
 import ReclamosGrupo from './ReclamosGrupo.jsx';
 
+const PESTANAS = [
+  { id: 'miembros', etiqueta: 'Miembros' },
+  { id: 'cuotas', etiqueta: 'Cuotas' },
+  { id: 'siniestros', etiqueta: 'Siniestros' },
+];
+
 export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActualizar, onVerHistorial }) {
+  const [pestana, setPestana] = useState('miembros');
   const [nombreMiembro, setNombreMiembro] = useState('');
   const [miembroDeposito, setMiembroDeposito] = useState('');
   const [elegibles, setElegibles] = useState([]);
@@ -61,6 +68,12 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
     }
   }
 
+  function cambiarPestana(id) {
+    setPestana(id);
+    setError(null);
+    setMensaje(null);
+  }
+
   return (
     <section>
       <div className="encabezado">
@@ -89,66 +102,90 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
         </div>
       </div>
 
+      <div className="pestanas">
+        {PESTANAS.map((p) => (
+          <button
+            key={p.id}
+            className={pestana === p.id ? 'pestana pestana-activa' : 'pestana'}
+            onClick={() => cambiarPestana(p.id)}
+          >
+            {p.etiqueta}
+          </button>
+        ))}
+      </div>
+
       {error && <p className="error">{error}</p>}
       {mensaje && <p className="exito">{mensaje}</p>}
 
-      <h3>Miembros ({grupo.miembros.length})</h3>
-      <ul className="lista-miembros">
-        {grupo.miembros.map((m) => (
-          <li key={m.id} className={usuarioActual?.id === m.id ? 'es-yo' : ''}>
-            <span>{m.nombre}</span>
-            {usuarioActual?.id === m.id && <span className="etiqueta etiqueta-yo">tú</span>}
-            {m.esDelegado && <span className="etiqueta">delegado</span>}
-            <span className={m.alDia ? 'etiqueta al-dia' : 'etiqueta pendiente'}>
-              {m.alDia ? 'al día' : 'pendiente'}
-            </span>
-          </li>
-        ))}
-      </ul>
+      {pestana === 'miembros' && (
+        <>
+          <h3>Miembros ({grupo.miembros.length})</h3>
+          <ul className="lista-miembros">
+            {grupo.miembros.map((m) => (
+              <li key={m.id} className={usuarioActual?.id === m.id ? 'es-yo' : ''}>
+                <span>{m.nombre}</span>
+                {usuarioActual?.id === m.id && <span className="etiqueta etiqueta-yo">tú</span>}
+                {m.esDelegado && <span className="etiqueta">delegado</span>}
+                <span className={m.alDia ? 'etiqueta al-dia' : 'etiqueta pendiente'}>
+                  {m.alDia ? 'al día' : 'pendiente'}
+                </span>
+              </li>
+            ))}
+          </ul>
 
-      <form className="formulario-en-linea" onSubmit={handleAgregarMiembro}>
-        <input
-          placeholder="Nombre del nuevo miembro"
-          value={nombreMiembro}
-          onChange={(e) => setNombreMiembro(e.target.value)}
-          required
-        />
-        <button type="submit">Agregar miembro</button>
-      </form>
+          <form className="formulario-en-linea" onSubmit={handleAgregarMiembro}>
+            <input
+              placeholder="Nombre del nuevo miembro"
+              value={nombreMiembro}
+              onChange={(e) => setNombreMiembro(e.target.value)}
+              required
+            />
+            <button type="submit">Agregar miembro</button>
+          </form>
+        </>
+      )}
 
-      <h3>Confirmar depósito de cuota</h3>
-      <p className="aviso-delegados">
-        Esto no es un pago: el miembro primero transfiere {grupo.cuotaPeriodica} USDT a la wallet
-        del fondo por fuera de la app. Acá solo se confirma que esa plata ya llegó (se verifica el
-        saldo real vía WDK).
-      </p>
-      <form className="formulario-en-linea" onSubmit={handleConfirmarAporte}>
-        <select value={miembroDeposito} onChange={(e) => setMiembroDeposito(e.target.value)} required>
-          <option value="" disabled>Elegir miembro...</option>
-          {grupo.miembros.filter((m) => !m.alDia).map((m) => (
-            <option key={m.id} value={m.id}>{m.nombre}</option>
-          ))}
-        </select>
-        <button type="submit" disabled={cargando}>
-          {cargando ? 'Verificando en WDK...' : 'Confirmar aporte'}
-        </button>
-      </form>
-      <button className="enlace-manual" type="button" onClick={handleMarcarManual}>
-        ⚠️ Marcar manual (sin WDK, solo pruebas)
-      </button>
+      {pestana === 'cuotas' && (
+        <>
+          <h3>Confirmar depósito de cuota</h3>
+          <p className="aviso-delegados">
+            Esto no es un pago: el miembro primero transfiere {grupo.cuotaPeriodica} USDT a la
+            wallet del fondo por fuera de la app. Acá solo se confirma que esa plata ya llegó (se
+            verifica el saldo real vía WDK).
+          </p>
+          <form className="formulario-en-linea" onSubmit={handleConfirmarAporte}>
+            <select value={miembroDeposito} onChange={(e) => setMiembroDeposito(e.target.value)} required>
+              <option value="" disabled>Elegir miembro...</option>
+              {grupo.miembros.filter((m) => !m.alDia).map((m) => (
+                <option key={m.id} value={m.id}>{m.nombre}</option>
+              ))}
+            </select>
+            <button type="submit" disabled={cargando}>
+              {cargando ? 'Verificando en WDK...' : 'Confirmar aporte'}
+            </button>
+          </form>
+          <button className="enlace-manual" type="button" onClick={handleMarcarManual}>
+            ⚠️ Marcar manual (sin WDK, solo pruebas)
+          </button>
+        </>
+      )}
 
-      <h3>Delegados elegibles para votar ({elegibles.length})</h3>
-      <ul className="lista-miembros">
-        {elegibles.map((m) => <li key={m.id}>{m.nombre}</li>)}
-        {elegibles.length === 0 && (
-          <li className="vacio">
-            Ninguno todavía. Deben unirse como miembro con el mismo nombre que un delegado
-            designado ({grupo.delegados.join(', ')}) y estar al día con su cuota.
-          </li>
-        )}
-      </ul>
+      {pestana === 'siniestros' && (
+        <>
+          <h3>Delegados elegibles para votar ({elegibles.length})</h3>
+          <ul className="lista-miembros">
+            {elegibles.map((m) => <li key={m.id}>{m.nombre}</li>)}
+            {elegibles.length === 0 && (
+              <li className="vacio">
+                Ninguno todavía. Deben unirse como miembro con el mismo nombre que un delegado
+                designado ({grupo.delegados.join(', ')}) y estar al día con su cuota.
+              </li>
+            )}
+          </ul>
 
-      <ReclamosGrupo grupo={grupo} elegibles={elegibles} />
+          <ReclamosGrupo grupo={grupo} elegibles={elegibles} />
+        </>
+      )}
 
       <button className="volver-al-final" onClick={onVolver}>← Volver al inicio</button>
     </section>
