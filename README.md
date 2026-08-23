@@ -8,25 +8,34 @@ Fondo mutual en USDT para un gremio o grupo pequeño, construido para el Aleph H
 
 ## Estado del proyecto
 
-<!-- TODO: actualizar a medida que se construye. Marcar qué está funcional vs. qué es roadmap. -->
-
-- [ ] Wallet del fondo (WDK CLI) — crear/desbloquear
-- [ ] Lógica de grupo (cuota, monto máx, delegados, quórum)
-- [ ] Depósitos de miembros
-- [ ] Reporte de siniestro (foto + monto + descripción)
-- [ ] Panel de aprobación de delegados
-- [ ] Proceso de tesorería (`wdk send` + recibo `--json`)
-- [ ] Historial completo
+- [x] Wallet del fondo (WDK CLI) — crear/desbloquear (verificado en vivo en Sepolia)
+- [x] Lógica de grupo (cuota, monto máx, delegados, quórum)
+- [x] Depósitos de miembros — confirmación vía `wdk get balance` real
+- [x] Reporte de siniestro (foto + monto + descripción)
+- [x] Panel de aprobación de delegados
+- [x] Proceso de tesorería (`wdk send` + recibo `--json`)
+- [x] Historial completo
+- [x] UI mínima end-to-end (CLI interactiva, `npm start`)
 - [ ] Diferenciador: motor de reglas de gasto (tope agregado + reserva mínima)
 - [ ] Diferenciador: agente de tesorería vía `wdk-mcp`
+
+Los 8 módulos base están implementados y cubiertos por tests (`npm test`). Pendiente: probar el flujo de depósito/pago con fondos reales de testnet en la wallet (ver "Qué es real vs. qué es simulado" abajo).
 
 ## Qué módulos de WDK se usan
 
 - `@tetherto/wdk-cli` — versión `1.0.0-beta.3`
+- Comandos de la CLI usados por la app: `wdk get balance` (depósitos y validación de fondos antes de pagar) y `wdk send` (pago de reclamos aprobados). `wdk wallet create`/`wdk wallet unlock`/`wdk get address` se usan al configurar la wallet del fondo (paso manual, ver Setup).
 
 ## Integración de WDK (permalinks)
 
-<!-- TODO: los jueces revisan esto primero. Completar con enlaces directos de GitHub a las líneas exactas donde se invoca WDK, una vez pusheado. -->
+`@tetherto/wdk-cli` es la dependencia principal del proyecto — no es un wrapper decorativo, es lo que ejecuta cada consulta de balance y cada pago real.
+
+- [`src/shared/wdk.js#L36-L41`](https://github.com/Alannum73/fondo-comunitario/blob/aaed9a75676ed3a8a774e69ff1206e0a6cc3630b/src/shared/wdk.js#L36-L41) — invocación real del binario de WDK CLI (`node bin/wdk.mjs ... --json`), base de todo lo demás.
+- [`src/shared/wdk.js#L60-L65`](https://github.com/Alannum73/fondo-comunitario/blob/aaed9a75676ed3a8a774e69ff1206e0a6cc3630b/src/shared/wdk.js#L60-L65) — `obtenerBalance()`, ejecuta `wdk get balance --network <red> --token <token> --wallet <wallet> --json`.
+- [`src/shared/wdk.js#L70-L74`](https://github.com/Alannum73/fondo-comunitario/blob/aaed9a75676ed3a8a774e69ff1206e0a6cc3630b/src/shared/wdk.js#L70-L74) — `enviarPago()`, ejecuta `wdk send --network <red> --to <dirección> --amount <monto> --token <token> --wallet <wallet> --json`.
+- [`src/depositos/depositos.js#L42`](https://github.com/Alannum73/fondo-comunitario/blob/aaed9a75676ed3a8a774e69ff1206e0a6cc3630b/src/depositos/depositos.js#L42) — un depósito de cuota se confirma consultando el balance real de la wallet del fondo antes de marcar al miembro "al día".
+- [`src/tesoreria/tesoreria.js#L34`](https://github.com/Alannum73/fondo-comunitario/blob/aaed9a75676ed3a8a774e69ff1206e0a6cc3630b/src/tesoreria/tesoreria.js#L34) — se valida el balance disponible en la wallet ANTES de intentar pagar un reclamo aprobado (para no fallar en silencio por fondos insuficientes).
+- [`src/tesoreria/tesoreria.js#L42-L48`](https://github.com/Alannum73/fondo-comunitario/blob/aaed9a75676ed3a8a774e69ff1206e0a6cc3630b/src/tesoreria/tesoreria.js#L42-L48) — el pago aprobado se ejecuta on-chain vía `wdk send`, y el recibo (`--json`) queda guardado en el reclamo.
 
 ## Red y token de la demo
 
@@ -53,10 +62,13 @@ Ver `.env.example`. Nunca usar una wallet personal — este proyecto usa una wal
 
 ## Qué es real vs. qué es simulado
 
-<!-- TODO: honestidad explícita, los jueces lo valoran en "Technicality" -->
-
-- **Real:** <!-- ej. wallet, depósitos, ejecución de pagos vía wdk-cli -->
+- **Real:**
+  - Wallet del fondo creada y desbloqueada con WDK CLI (`fondo-comunitario-dev`, dirección `0x24c7E155317d21ee6a9bB755A077Abe3f12169Ff` en Sepolia).
+  - Consulta de balance real vía `wdk get balance --json`, verificada en vivo contra esa wallet.
+  - Toda la lógica de negocio (grupos, delegados, quórum, reclamos, aprobaciones, historial) corre sobre datos reales guardados en `data/*.json`, sin mocks salvo en los tests.
+  - El pago de un reclamo aprobado ejecuta `wdk send --json` de verdad y guarda el recibo devuelto por la CLI — el código está armado y testeado con `wdk send` inyectado como mock en los tests unitarios; falta la confirmación en vivo de un envío real (ver limitación abajo).
 - **Simulado / fuera de alcance en el hackathon:** análisis automático de fotos (QVAC), votación P2P entre todos los miembros (Pears), multisig on-chain real del fondo, cumplimiento regulatorio/KYC.
+- **Limitación conocida al momento de esta entrega:** la wallet del fondo todavía no tiene USDT de testnet (el faucet de Sepolia USDT no se pudo completar a tiempo), así que el flujo de depósito/pago no se probó con una transacción real entrando o saliendo — sí con la wallet real desbloqueada y el balance consultado en vivo (`0 USDT`). El código de `enviarPago()`/`wdk send` no asume ningún campo específico de la respuesta (guarda el JSON crudo como recibo) para no romperse cuando se confirme el shape real.
 
 ## Modelo de custodia (léelo antes de preguntar quién tiene la llave)
 
