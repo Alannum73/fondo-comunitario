@@ -771,3 +771,11 @@ h3 {
     padding: 1.5rem 0.75rem;
   }
 }
+
+.error-boundary h2 {
+  margin-top: 0;
+}
+
+.error-boundary p {
+  color: var(--texto-suave);
+}
