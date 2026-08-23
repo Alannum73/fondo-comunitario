@@ -76,6 +76,8 @@ En este MVP, el dispositivo que crea el fondo actúa como custodio de la wallet.
 
 **Cada grupo/fondo tiene su propia wallet de WDK CLI** (`grupo.walletName`), creada de antemano por el usuario con `wdk wallet create` — la passphrase la elige y la recuerda el usuario, la app nunca la ve ni la guarda. Esto evita que dos grupos distintos compartan el mismo balance de USDT: sin esto, un pago aprobado en un grupo podría gastar plata que en realidad correspondía a los aportes de otro grupo.
 
+**Cada miembro tiene su propia contraseña** (hasheada con `scrypt`, nunca en texto plano ni expuesta por la API). Entrar a un fondo requiere loguearse como ese miembro, y **votar un reclamo (aprobar/rechazar) solo lo puede hacer el delegado logueado como sí mismo** — el servidor valida la sesión contra el `delegadoId` que se manda, no alcanza con conocer su id. Esto evita que cualquiera pueda actuar como cualquier otro miembro solo sabiendo su nombre.
+
 ## Roadmap (qué faltaría para producción)
 
 - Multisig real entre delegados para la wallet del fondo.
