@@ -89,6 +89,7 @@ async function verGruposFlujo() {
     console.log(
       `    cuota: ${g.cuotaPeriodica} | monto máx: ${g.montoMaxSiniestro} | quórum: ${g.quorumDelegados}/${g.delegados.length} delegados`
     );
+    console.log(`    delegados designados (nombres): ${g.delegados.join(', ')}`);
     console.log(`    miembros: ${g.miembros.length} (${alDia} al día)`);
     for (const m of g.miembros) {
       const etiquetas = [m.esDelegado ? 'delegado' : null, m.alDia ? 'al día' : 'no al día'].filter(Boolean);
