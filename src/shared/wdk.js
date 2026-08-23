@@ -6,11 +6,12 @@
 // `balance` viene en unidades base (según `decimals`); usamos `formatted` (ya en decimal) para
 // no tener que reimplementar el escalado por decimals acá.
 //
-// ⚠️ El shape de `wdk send --json` todavía NO está confirmado en vivo (no hay balance en la
-// wallet para probar un envío real todavía). `enviarPago()` devuelve el JSON crudo tal cual lo
-// entrega la CLI como "recibo" — no le extraemos campos individuales, así que no hay nada que
-// romper cuando se confirme el shape real, pero conviene correr un envío de prueba (o
-// `--dry-run`) antes de confiar en esto para el demo.
+// Shape real confirmado en vivo (wdk send --network sepolia --to 0x...dEaD --amount 1 --token usdt --json),
+// pago real ejecutado en Sepolia el 2026-08-23:
+// {"network":"sepolia","txHash":"0x80b98c9c...","from":"0x24c7...69Ff","to":"0x000...dEaD",
+//  "amount":"1000000","amountFormatted":"1 USDT","fee":"91440598902840","feeFormatted":"0.00009144 ETH"}
+// `enviarPago()` devuelve este JSON crudo tal cual lo entrega la CLI como "recibo" — no le
+// extraemos campos individuales, así que tampoco hay nada que romper con este shape.
 
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';

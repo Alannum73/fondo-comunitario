@@ -19,7 +19,7 @@ Fondo mutual en USDT para un gremio o grupo pequeño, construido para el Aleph H
 - [ ] Diferenciador: motor de reglas de gasto (tope agregado + reserva mínima)
 - [ ] Diferenciador: agente de tesorería vía `wdk-mcp`
 
-Los 8 módulos base están implementados y cubiertos por tests (`npm test`). Pendiente: probar el flujo de depósito/pago con fondos reales de testnet en la wallet (ver "Qué es real vs. qué es simulado" abajo).
+Los 8 módulos base están implementados, cubiertos por tests (`npm test`), y el flujo de depósito + pago se verificó en vivo contra WDK CLI real en Sepolia (ver "Qué es real vs. qué es simulado" abajo).
 
 ## Qué módulos de WDK se usan
 
@@ -62,13 +62,13 @@ Ver `.env.example`. Nunca usar una wallet personal — este proyecto usa una wal
 
 ## Qué es real vs. qué es simulado
 
-- **Real:**
+- **Real, verificado en vivo de punta a punta el 2026-08-23:**
   - Wallet del fondo creada y desbloqueada con WDK CLI (`fondo-comunitario-dev`, dirección `0x24c7E155317d21ee6a9bB755A077Abe3f12169Ff` en Sepolia).
-  - Consulta de balance real vía `wdk get balance --json`, verificada en vivo contra esa wallet.
-  - Toda la lógica de negocio (grupos, delegados, quórum, reclamos, aprobaciones, historial) corre sobre datos reales guardados en `data/*.json`, sin mocks salvo en los tests.
-  - El pago de un reclamo aprobado ejecuta `wdk send --json` de verdad y guarda el recibo devuelto por la CLI — el código está armado y testeado con `wdk send` inyectado como mock en los tests unitarios; falta la confirmación en vivo de un envío real (ver limitación abajo).
+  - Wallet fondeada con 100 USDT reales de testnet (faucet de Aave), consultados vía `wdk get balance --json`.
+  - **Depósito real confirmado:** `confirmarAporte()` detectó el aumento de balance (0 → 100 USDT) contra la wallet real y marcó a un miembro "al día", sin mocks.
+  - **Pago real ejecutado:** `pagarReclamo()` corrió `wdk send` de verdad — 1 USDT enviado en Sepolia, balance bajó de 100 a 99 USDT. Transacción: [`0x80b98c9c7a30c0e787e6766ae24e5d79f0de8b9627399bea372b35f876692ffb`](https://sepolia.etherscan.io/tx/0x80b98c9c7a30c0e787e6766ae24e5d79f0de8b9627399bea372b35f876692ffb).
+  - Toda la lógica de negocio (grupos, delegados, quórum, reclamos, aprobaciones, historial) corre sobre datos reales guardados en `data/*.json`, sin mocks salvo en los tests unitarios.
 - **Simulado / fuera de alcance en el hackathon:** análisis automático de fotos (QVAC), votación P2P entre todos los miembros (Pears), multisig on-chain real del fondo, cumplimiento regulatorio/KYC.
-- **Limitación conocida al momento de esta entrega:** la wallet del fondo todavía no tiene USDT de testnet (el faucet de Sepolia USDT no se pudo completar a tiempo), así que el flujo de depósito/pago no se probó con una transacción real entrando o saliendo — sí con la wallet real desbloqueada y el balance consultado en vivo (`0 USDT`). El código de `enviarPago()`/`wdk send` no asume ningún campo específico de la respuesta (guarda el JSON crudo como recibo) para no romperse cuando se confirme el shape real.
 
 ## Modelo de custodia (léelo antes de preguntar quién tiene la llave)
 
