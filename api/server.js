@@ -45,6 +45,12 @@ function manejar(fn) {
     } catch (err) {
       if (err instanceof ErrorValidacion) {
         res.status(400).json({ error: err.message });
+      } else if (err.message?.startsWith('WDK CLI:')) {
+        // src/shared/wdk.js ya arma un mensaje claro (ej. "wallet no desbloqueada" con la
+        // sugerencia de qué correr) — mostrarlo tal cual en vez de un 500 genérico que lo
+        // esconde y solo deja rastro en el log del servidor.
+        console.error(err);
+        res.status(502).json({ error: err.message });
       } else {
         console.error(err);
         res.status(500).json({ error: 'Error interno del servidor.' });
