@@ -11,7 +11,7 @@ import { existsSync, readFileSync } from 'node:fs';
 
 import { crearGrupo, listarGrupos, agregarMiembro, ErrorValidacion } from './src/grupo/grupo.js';
 import { confirmarAporte } from './src/depositos/depositos.js';
-import { crearReclamo, aprobarReclamo, rechazarReclamo } from './src/reclamos/reclamo.js';
+import { crearReclamo, listarReclamos, aprobarReclamo, rechazarReclamo } from './src/reclamos/reclamo.js';
 import { pagarReclamo } from './src/tesoreria/tesoreria.js';
 import { obtenerHistorial } from './src/historial/historial.js';
 
@@ -90,6 +90,18 @@ async function verGruposFlujo() {
       `    cuota: ${g.cuotaPeriodica} | monto máx: ${g.montoMaxSiniestro} | quórum: ${g.quorumDelegados}/${g.delegados.length} delegados`
     );
     console.log(`    miembros: ${g.miembros.length} (${alDia} al día)`);
+    for (const m of g.miembros) {
+      const etiquetas = [m.esDelegado ? 'delegado' : null, m.alDia ? 'al día' : 'no al día'].filter(Boolean);
+      console.log(`      · ${m.nombre} (id ${m.id}) [${etiquetas.join(', ')}]`);
+    }
+
+    const reclamos = listarReclamos(g.id);
+    if (reclamos.length > 0) {
+      console.log(`    reclamos:`);
+      for (const r of reclamos) {
+        console.log(`      · ${r.montoSolicitado} USDT — ${r.estado} (id ${r.id})`);
+      }
+    }
   }
   console.log('');
 }
