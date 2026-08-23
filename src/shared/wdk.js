@@ -34,10 +34,29 @@ const WDK_BIN = join(
 );
 
 async function ejecutarWdk(args) {
-  const { stdout } = await execFileAsync(process.execPath, [WDK_BIN, ...args, '--json'], {
-    windowsHide: true,
-  });
-  return JSON.parse(stdout);
+  try {
+    const { stdout } = await execFileAsync(process.execPath, [WDK_BIN, ...args, '--json'], {
+      windowsHide: true,
+    });
+    return JSON.parse(stdout);
+  } catch (error) {
+    // Cuando WDK CLI falla (ej. wallet bloqueada), sale con código de error pero igual
+    // imprime un JSON con detalle en stdout (`{"error", "code", "suggestion"}`) — sin este
+    // catch, ese detalle se perdía y solo se veía "Command failed: <comando>".
+    const salida = error.stdout ? intentarParsear(error.stdout) : null;
+    if (salida?.error) {
+      throw new Error(`WDK CLI: ${salida.error}${salida.suggestion ? ` (${salida.suggestion})` : ''}`);
+    }
+    throw error;
+  }
+}
+
+function intentarParsear(texto) {
+  try {
+    return JSON.parse(texto);
+  } catch {
+    return null;
+  }
 }
 
 function extraerBalance(resultado) {
