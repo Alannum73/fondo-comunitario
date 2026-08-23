@@ -14,6 +14,7 @@ import { confirmarAporte } from './src/depositos/depositos.js';
 import { crearReclamo, listarReclamos, aprobarReclamo, rechazarReclamo } from './src/reclamos/reclamo.js';
 import { pagarReclamo } from './src/tesoreria/tesoreria.js';
 import { obtenerHistorial } from './src/historial/historial.js';
+import { obtenerDireccion } from './src/shared/wdk.js';
 
 cargarEnv();
 
@@ -79,6 +80,12 @@ async function verGruposFlujo() {
     const alDia = g.miembros.filter((m) => m.alDia).length;
     console.log(`- ${g.nombre} (id ${g.id})`);
     console.log(`    wallet: ${g.walletName}`);
+    try {
+      const direccion = await obtenerDireccion({ wallet: g.walletName, network: process.env.WDK_NETWORK });
+      console.log(`    dirección para depositar (${process.env.WDK_NETWORK}): ${direccion}`);
+    } catch (error) {
+      console.log(`    dirección: no disponible (${error.message})`);
+    }
     console.log(
       `    cuota: ${g.cuotaPeriodica} | monto máx: ${g.montoMaxSiniestro} | quórum: ${g.quorumDelegados}/${g.delegados.length} delegados`
     );

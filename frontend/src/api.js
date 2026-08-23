@@ -33,6 +33,10 @@ export function delegadosElegibles(grupoId) {
   return pedir(`/grupos/${grupoId}/delegados-elegibles`);
 }
 
+export function obtenerDireccionFondo(grupoId) {
+  return pedir(`/grupos/${grupoId}/direccion`);
+}
+
 export function confirmarAporte(grupoId, datos) {
   return pedir(`/grupos/${grupoId}/depositos/confirmar`, {
     method: 'POST',

@@ -23,6 +23,7 @@ import {
 } from '../src/reclamos/reclamo.js';
 import { pagarReclamo } from '../src/tesoreria/tesoreria.js';
 import { obtenerHistorial } from '../src/historial/historial.js';
+import { obtenerDireccion } from '../src/shared/wdk.js';
 
 // Sin esto, WDK_WALLET_NAME/WDK_NETWORK/WDK_TOKEN quedan undefined salvo que se exporten
 // a mano en la shell antes de `npm run server` — el frontend no los manda en el body,
@@ -65,6 +66,15 @@ app.post(
 app.get(
   '/api/grupos/:grupoId/delegados-elegibles',
   manejar((req) => delegadosElegibles(req.params.grupoId))
+);
+
+app.get(
+  '/api/grupos/:grupoId/direccion',
+  manejar(async (req) => {
+    const grupo = obtenerGrupo(req.params.grupoId);
+    const direccion = await obtenerDireccion({ wallet: grupo.walletName, network: process.env.WDK_NETWORK });
+    return { direccion, network: process.env.WDK_NETWORK };
+  })
 );
 
 app.post(

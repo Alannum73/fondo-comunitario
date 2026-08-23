@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { agregarMiembro, confirmarAporte, marcarAporteManual, delegadosElegibles } from '../api.js';
+import { agregarMiembro, confirmarAporte, marcarAporteManual, delegadosElegibles, obtenerDireccionFondo } from '../api.js';
 import ReclamosGrupo from './ReclamosGrupo.jsx';
 
 const PESTANAS = [
@@ -13,12 +13,19 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
   const [nombreMiembro, setNombreMiembro] = useState('');
   const [miembroDeposito, setMiembroDeposito] = useState('');
   const [elegibles, setElegibles] = useState([]);
+  const [direccionFondo, setDireccionFondo] = useState(null);
+  const [errorDireccion, setErrorDireccion] = useState(null);
   const [error, setError] = useState(null);
   const [mensaje, setMensaje] = useState(null);
   const [cargando, setCargando] = useState(false);
 
   useEffect(() => {
     delegadosElegibles(grupo.id).then(setElegibles).catch(() => {});
+    setDireccionFondo(null);
+    setErrorDireccion(null);
+    obtenerDireccionFondo(grupo.id)
+      .then((r) => setDireccionFondo(r.direccion))
+      .catch((err) => setErrorDireccion(err.message));
   }, [grupo]);
 
   async function handleAgregarMiembro(e) {
@@ -104,6 +111,29 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
           <span className="dato-etiqueta">Quórum</span>
           <span className="dato-valor">{grupo.quorumDelegados} de {grupo.delegados.length}</span>
         </div>
+      </div>
+
+      <div className="aviso-delegados">
+        <strong>Dirección para depositar la cuota:</strong>{' '}
+        {direccionFondo && (
+          <>
+            <code>{direccionFondo}</code>{' '}
+            <button
+              type="button"
+              className="enlace-manual"
+              onClick={() => {
+                navigator.clipboard.writeText(direccionFondo);
+                setMensaje('Dirección copiada.');
+              }}
+            >
+              Copiar
+            </button>
+          </>
+        )}
+        {!direccionFondo && !errorDireccion && 'Consultando...'}
+        {errorDireccion && (
+          <span className="error"> No se pudo consultar ({errorDireccion}). ¿La wallet está desbloqueada?</span>
+        )}
       </div>
 
       <div className="pestanas">

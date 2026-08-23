@@ -92,3 +92,16 @@ export async function enviarPago({ wallet, network, token, to, amount }) {
   if (token) args.push('--token', token);
   return ejecutarWdk(args);
 }
+
+/**
+ * Dirección on-chain de la wallet del fondo — a esta dirección tienen que transferir los
+ * miembros su cuota (por fuera de la app, ver src/depositos/depositos.js).
+ * Shape real confirmado en vivo: {"network":"sepolia","index":0,"address":"0x24c7E155...69Ff"}
+ */
+export async function obtenerDireccion({ wallet, network }) {
+  const resultado = await ejecutarWdk(['get', 'address', '--network', network, '--wallet', wallet]);
+  if (typeof resultado.address !== 'string') {
+    throw new Error(`No se pudo obtener la dirección de la respuesta de WDK CLI: ${JSON.stringify(resultado)}`);
+  }
+  return resultado.address;
+}
