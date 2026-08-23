@@ -25,6 +25,10 @@ export function obtenerGrupo(grupoId) {
   return pedir(`/grupos/${grupoId}`);
 }
 
+export function eliminarGrupo(grupoId) {
+  return pedir(`/grupos/${grupoId}`, { method: 'DELETE' });
+}
+
 export function agregarMiembro(grupoId, datos) {
   return pedir(`/grupos/${grupoId}/miembros`, { method: 'POST', body: JSON.stringify(datos) });
 }

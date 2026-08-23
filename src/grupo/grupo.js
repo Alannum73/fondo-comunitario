@@ -147,3 +147,19 @@ export function delegadosElegibles(grupoId) {
   const grupo = obtenerGrupo(grupoId);
   return grupo.miembros.filter((m) => m.esDelegado && m.alDia);
 }
+
+/**
+ * Elimina un grupo. Solo borra el registro del grupo/fondo — no toca reclamos,
+ * historial ni balances asociados (fuera de alcance del hackathon; esos quedan
+ * huérfanos en sus propios archivos, sin impacto porque se filtran por grupoId
+ * inexistente).
+ */
+export function eliminarGrupo(grupoId) {
+  const db = cargarGrupos();
+  const indice = db.grupos.findIndex((g) => g.id === grupoId);
+  if (indice === -1) throw new ErrorValidacion(`No existe un grupo con id ${grupoId}.`);
+
+  const [grupo] = db.grupos.splice(indice, 1);
+  guardarGrupos(db);
+  return grupo;
+}

@@ -53,6 +53,11 @@ export default function App() {
     setVista('inicio');
   }
 
+  function grupoEliminado() {
+    cargarGrupos();
+    irAInicio();
+  }
+
   if (vista === 'inicio') {
     return (
       <Inicio
@@ -113,6 +118,7 @@ export default function App() {
             onVolver={irAInicio}
             onActualizar={refrescarGrupoActivo}
             onVerHistorial={() => setVista('historial')}
+            onEliminado={grupoEliminado}
           />
         )}
 

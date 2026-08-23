@@ -18,8 +18,16 @@ after(() => {
   rmSync(tmpDir, { recursive: true, force: true });
 });
 
-const { crearGrupo, agregarMiembro, marcarAporte, delegadosElegibles, obtenerGrupo, ErrorValidacion } =
-  await import('./grupo.js');
+const {
+  crearGrupo,
+  agregarMiembro,
+  marcarAporte,
+  delegadosElegibles,
+  obtenerGrupo,
+  eliminarGrupo,
+  listarGrupos,
+  ErrorValidacion,
+} = await import('./grupo.js');
 
 const datosValidos = () => ({
   nombre: 'Repartidores Cochabamba',
@@ -115,4 +123,19 @@ test('delegadosElegibles solo cuenta delegados al día', () => {
 
   marcarAporte(grupo.id, ana.id);
   assert.equal(delegadosElegibles(grupo.id).length, 1);
+});
+
+test('eliminarGrupo borra el grupo de la lista', () => {
+  const totalAntes = listarGrupos().length;
+  const grupo = crearGrupo(datosValidos());
+  assert.equal(listarGrupos().length, totalAntes + 1);
+
+  const eliminado = eliminarGrupo(grupo.id);
+  assert.equal(eliminado.id, grupo.id);
+  assert.equal(listarGrupos().length, totalAntes);
+  assert.throws(() => obtenerGrupo(grupo.id), ErrorValidacion);
+});
+
+test('eliminarGrupo rechaza un id inexistente', () => {
+  assert.throws(() => eliminarGrupo('no-existe'), ErrorValidacion);
 });

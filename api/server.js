@@ -11,9 +11,11 @@ import {
   agregarMiembro,
   delegadosElegibles,
   marcarAporte,
+  eliminarGrupo,
   ErrorValidacion,
 } from '../src/grupo/grupo.js';
 import { confirmarAporte } from '../src/depositos/depositos.js';
+import { obtenerDireccion } from '../src/shared/wdk.js';
 import {
   crearReclamo,
   listarReclamos,
@@ -23,7 +25,6 @@ import {
 } from '../src/reclamos/reclamo.js';
 import { pagarReclamo } from '../src/tesoreria/tesoreria.js';
 import { obtenerHistorial } from '../src/historial/historial.js';
-import { obtenerDireccion } from '../src/shared/wdk.js';
 
 // Sin esto, WDK_WALLET_NAME/WDK_NETWORK/WDK_TOKEN quedan undefined salvo que se exporten
 // a mano en la shell antes de `npm run server` — el frontend no los manda en el body,
@@ -57,6 +58,8 @@ app.get('/api/grupos', manejar(() => listarGrupos()));
 app.post('/api/grupos', manejar((req) => crearGrupo(req.body)));
 
 app.get('/api/grupos/:grupoId', manejar((req) => obtenerGrupo(req.params.grupoId)));
+
+app.delete('/api/grupos/:grupoId', manejar((req) => eliminarGrupo(req.params.grupoId)));
 
 app.post(
   '/api/grupos/:grupoId/miembros',
