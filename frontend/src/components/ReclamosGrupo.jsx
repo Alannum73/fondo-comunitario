@@ -142,7 +142,7 @@ export default function ReclamosGrupo({ grupo, elegibles }) {
 
       <h3>Reclamos ({reclamos.length})</h3>
 
-      {elegibles.length > 0 && (
+      {elegibles.length > 0 ? (
         <label className="selector-votante">
           Votando como
           <select value={delegadoVotante} onChange={(e) => setDelegadoVotante(e.target.value)}>
@@ -152,6 +152,12 @@ export default function ReclamosGrupo({ grupo, elegibles }) {
             ))}
           </select>
         </label>
+      ) : (
+        <p className="aviso-delegados">
+          Todavía nadie puede votar: los delegados designados de este fondo son{' '}
+          <strong>{grupo.delegados.join(', ')}</strong>. Para votar, hay que agregarlos como
+          miembro con ese mismo nombre y que estén al día con su cuota.
+        </p>
       )}
 
       <ul className="lista-reclamos">
@@ -173,8 +179,8 @@ export default function ReclamosGrupo({ grupo, elegibles }) {
                     {r.aprobaciones.length} aprob. / {r.rechazos.length} rechazos (quórum {grupo.quorumDelegados})
                   </span>
                   <div className="grupo-botones">
-                    <button onClick={() => handleVotar(r.id, true)}>Aprobar</button>
-                    <button onClick={() => handleVotar(r.id, false)}>Rechazar</button>
+                    <button disabled={!delegadoVotante} onClick={() => handleVotar(r.id, true)}>Aprobar</button>
+                    <button disabled={!delegadoVotante} onClick={() => handleVotar(r.id, false)}>Rechazar</button>
                   </div>
                 </div>
               )}

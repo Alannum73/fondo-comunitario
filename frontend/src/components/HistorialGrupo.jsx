@@ -65,6 +65,8 @@ export default function HistorialGrupo({ grupoId, onVolver }) {
         ))}
         {eventos.length === 0 && <li className="vacio">Todavía no hay eventos.</li>}
       </ul>
+
+      <button className="volver-al-final" onClick={onVolver}>← Volver</button>
     </section>
   );
 }

@@ -117,6 +117,11 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
       </form>
 
       <h3>Confirmar depósito de cuota</h3>
+      <p className="aviso-delegados">
+        Esto no es un pago: el miembro primero transfiere {grupo.cuotaPeriodica} USDT a la wallet
+        del fondo por fuera de la app. Acá solo se confirma que esa plata ya llegó (se verifica el
+        saldo real vía WDK).
+      </p>
       <form className="formulario-en-linea" onSubmit={handleConfirmarAporte}>
         <select value={miembroDeposito} onChange={(e) => setMiembroDeposito(e.target.value)} required>
           <option value="" disabled>Elegir miembro...</option>
@@ -135,10 +140,17 @@ export default function DetalleGrupo({ grupo, usuarioActual, onVolver, onActuali
       <h3>Delegados elegibles para votar ({elegibles.length})</h3>
       <ul className="lista-miembros">
         {elegibles.map((m) => <li key={m.id}>{m.nombre}</li>)}
-        {elegibles.length === 0 && <li className="vacio">Ninguno todavía (deben ser delegados y estar al día).</li>}
+        {elegibles.length === 0 && (
+          <li className="vacio">
+            Ninguno todavía. Deben unirse como miembro con el mismo nombre que un delegado
+            designado ({grupo.delegados.join(', ')}) y estar al día con su cuota.
+          </li>
+        )}
       </ul>
 
       <ReclamosGrupo grupo={grupo} elegibles={elegibles} />
+
+      <button className="volver-al-final" onClick={onVolver}>← Volver al inicio</button>
     </section>
   );
 }
